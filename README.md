@@ -64,7 +64,7 @@ biosentinel/
 
 ## 📚 Referencias
 
-* **Paper Base:** [Core-to-transition biodiversity organization (Nature E\&E, 2024)](https://www.nature.com/articles/s41559-024-02561-6)
+* **Paper Base:** [Core-to-transition biodiversity organization (Nature E\&E, 2024)](https://www.nature.com/articles/s41559-025-02724-5#Sec6)
 * **Sentinel Data Hub:** [https://scihub.copernicus.eu/](https://scihub.copernicus.eu/)
 
 ---
