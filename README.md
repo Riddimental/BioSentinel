@@ -1,4 +1,4 @@
-# 🛰️ BioSentinel
+# 🛰️ BioSentinel-UV
 
 **BioSentinel** es una plataforma interactiva que utiliza inteligencia artificial e imágenes satelitales Sentinel para identificar y visualizar en tiempo real las zonas núcleo y de transición de biodiversidad, basándose en el patrón descrito en el paper publicado en *Nature Ecology & Evolution* sobre la organización “core-to-transition” de la vida en la Tierra.
 
