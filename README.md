@@ -6,7 +6,7 @@
 
 La biodiversidad global sigue un patrón no aleatorio: especies se concentran en núcleos (corazones de biodiversidad), desde donde se filtran hacia zonas de transición con menor riqueza biológica. Si estas zonas núcleo se ven afectadas, toda la red ecológica regional sufre desequilibrios que impactan directamente cultivos, ganadería, polinizadores y economías rurales.
 
-## 🔍 Qué hace BioSentinel
+## 🔍 Qué hace BioSentinel UV
 
 - 📡 Interpola imágenes satelitales Sentinel y datos del estudio científico para detectar zonas de alta relevancia ecológica.
 - 🧠 Usa modelos de machine learning para inferir zonas núcleo y de transición en regiones sin datos directos.
@@ -79,8 +79,11 @@ PhD. Maria Patricia Trujillo
 
 PhD. Cesar Pantoja
 
+PhD. Luz Angela Gonzalez
+
 David Alberto Guzman
 
 Jhoan Leon
 
 Sebastian Diaz
+ 
