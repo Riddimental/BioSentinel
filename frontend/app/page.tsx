@@ -3,7 +3,7 @@
 import { useState, useRef, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import L from 'leaflet';
-import { boundsToGeoJSON, formatBoundsInfo, validateBounds } from './utils/mapUtils';
+import { boundsToGeoJSON, formatBoundsInfo, validateBounds, getCurrentLocation, getLocationZoom } from './utils/mapUtils';
 import { MapComponentRef } from './components/MapComponent';
 import MapSearch from './components/MapSearch';
 
@@ -43,6 +43,28 @@ export default function Home() {
     if (map) {
       map.setView([lat, lng], zoom);
       console.log(`Selected location: ${name} at ${lat}, ${lng} with zoom ${zoom}`);
+    }
+  }, []);
+
+  const handleCenterOnUser = useCallback(async () => {
+    const map = mapRef.current?.getMap();
+    if (!map) return;
+
+    try {
+      const location = await getCurrentLocation();
+      const zoom = getLocationZoom();
+      map.setView([location.lat, location.lng], zoom);
+      
+      // Add or update user location marker
+      L.marker([location.lat, location.lng])
+        .addTo(map)
+        .bindPopup('Your current location')
+        .openPopup();
+        
+      console.log('Centered on user location:', location);
+    } catch (error) {
+      console.error('Could not get user location:', error);
+      alert('Unable to get your location. Please check your browser permissions.');
     }
   }, []);
 
@@ -88,6 +110,29 @@ export default function Home() {
           onBoundsChange={handleBoundsChange}
           className="w-full h-full"
         />
+        
+        {/* Map Overlay Controls */}
+        <div className="absolute top-4 right-4 z-[1000] flex gap-2">
+          {/* Search Box */}
+          <div className="w-64">
+            <MapSearch 
+              onLocationSelect={handleLocationSelect}
+              className="w-full"
+            />
+          </div>
+          
+          {/* Center on User Button */}
+          <button
+            onClick={handleCenterOnUser}
+            className="flex-shrink-0 bg-white hover:bg-gray-50 border border-gray-300 rounded-md p-2 shadow-sm transition-colors"
+            title="Center on your location"
+          >
+            <svg className="h-5 w-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+          </button>
+        </div>
       </div>
 
       {/* Control Panel - 25% width */}
@@ -95,17 +140,6 @@ export default function Home() {
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">BioSentinel</h1>
           <p className="text-sm text-gray-600">AI-powered biodiversity analysis</p>
-        </div>
-
-        {/* Location Search */}
-        <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Search Location
-          </label>
-          <MapSearch 
-            onLocationSelect={handleLocationSelect}
-            className="w-full"
-          />
         </div>
 
         {/* Model Selection */}
