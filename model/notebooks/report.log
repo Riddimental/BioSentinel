@@ -1,0 +1,50 @@
+Procesando: ../../docs/Ground Truth GeoJsons/birds_cluster.geojson
+Se dividió en 6 chunks
+⚠️ Chunk 0 no contiene features dentro del Amazonas. Saltando.
+⚠️ Chunk 1 no contiene features dentro del Amazonas. Saltando.
+⚠️ Chunk 2 no contiene features dentro del Amazonas. Saltando.
+/Users/riddimental/Documents/GitHub/BioSentinel/venv/lib/python3.13/site-packages/ee/deprecation.py:209: DeprecationWarning: 
+
+Attention required for NASA_USDA/HSL/SMAP10KM_soil_moisture! You are using a deprecated asset.
+To make sure your code keeps working, please update it.
+Learn more: https://developers.google.com/earth-engine/datasets/catalog/NASA_USDA_HSL_SMAP10KM_soil_moisture
+
+  warnings.warn(warning, category=DeprecationWarning)
+Tarea iniciada para birds_cluster_chunk_3: UVONJCSTTXIWLSRZ5L7VJZ2F
+Tarea iniciada para birds_cluster_chunk_4: FRWRJWKWJQMHXOVI6HXOANII
+⚠️ Chunk 5 no contiene features dentro del Amazonas. Saltando.
+Procesando: ../../docs/Ground Truth GeoJsons/dragonflies_cluster.geojson
+Se dividió en 3 chunks
+⚠️ Chunk 0 no contiene features dentro del Amazonas. Saltando.
+⚠️ Chunk 1 no contiene features dentro del Amazonas. Saltando.
+⚠️ Chunk 2 no contiene features dentro del Amazonas. Saltando.
+Procesando: ../../docs/Ground Truth GeoJsons/rays_cluster.geojson
+Se dividió en 1 chunks
+⚠️ Chunk 0 no contiene features dentro del Amazonas. Saltando.
+Procesando: ../../docs/Ground Truth GeoJsons/trees_cluster.geojson
+Se dividió en 2 chunks
+⚠️ Chunk 0 no contiene features dentro del Amazonas. Saltando.
+⚠️ Chunk 1 no contiene features dentro del Amazonas. Saltando.
+Procesando: ../../docs/Ground Truth GeoJsons/mammals_cluster.geojson
+Se dividió en 6 chunks
+⚠️ Chunk 0 no contiene features dentro del Amazonas. Saltando.
+⚠️ Chunk 1 no contiene features dentro del Amazonas. Saltando.
+⚠️ Chunk 2 no contiene features dentro del Amazonas. Saltando.
+Tarea iniciada para mammals_cluster_chunk_3: IM3ACXRVFLSFOZ2OMFRUI3SO
+Tarea iniciada para mammals_cluster_chunk_4: WUEJ2SO2XW5CKN656DLPAV7I
+⚠️ Chunk 5 no contiene features dentro del Amazonas. Saltando.
+Procesando: ../../docs/Ground Truth GeoJsons/reptiles_cluster.geojson
+Se dividió en 5 chunks
+⚠️ Chunk 0 no contiene features dentro del Amazonas. Saltando.
+⚠️ Chunk 1 no contiene features dentro del Amazonas. Saltando.
+⚠️ Chunk 2 no contiene features dentro del Amazonas. Saltando.
+Tarea iniciada para reptiles_cluster_chunk_3: NXHKPVJVOSH2VRPYHQ75P7XU
+⚠️ Chunk 4 no contiene features dentro del Amazonas. Saltando.
+Procesando: ../../docs/Ground Truth GeoJsons/amphibians_cluster.geojson
+Se dividió en 5 chunks
+⚠️ Chunk 0 no contiene features dentro del Amazonas. Saltando.
+⚠️ Chunk 1 no contiene features dentro del Amazonas. Saltando.
+Tarea iniciada para amphibians_cluster_chunk_2: ECE5IHNXLTHQ5XWLPBFROPF7
+Tarea iniciada para amphibians_cluster_chunk_3: 2H4YNGBEU6HAY3BVZCSVH32A
+⚠️ Chunk 4 no contiene features dentro del Amazonas. Saltando.
+Todas las tareas han sido enviadas.
