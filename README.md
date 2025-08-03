@@ -1,17 +1,44 @@
 # 🛰️ BioSentinel-UV
 
-**BioSentinel** es una plataforma interactiva que utiliza inteligencia artificial e imágenes satelitales Sentinel para identificar y visualizar en tiempo real las zonas núcleo y de transición de biodiversidad, basándose en el patrón descrito en el paper publicado en *Nature Ecology & Evolution* sobre la organización “core-to-transition” de la vida en la Tierra.
+**BioSentinel-UV** es una plataforma interactiva que combina inteligencia artificial con datos satelitales de la misión **Copernicus Sentinel** para detectar y visualizar en tiempo real los núcleos de biodiversidad y sus zonas de transición. Se basa en el patrón **"core-to-transition"** descrito en el artículo publicado en *Nature Ecology & Evolution*, que revela cómo la vida en la Tierra se organiza espacialmente.
 
-## 🌱 ¿Por qué importa?
+---
 
-La biodiversidad global sigue un patrón no aleatorio: especies se concentran en núcleos (corazones de biodiversidad), desde donde se filtran hacia zonas de transición con menor riqueza biológica. Si estas zonas núcleo se ven afectadas, toda la red ecológica regional sufre desequilibrios que impactan directamente cultivos, ganadería, polinizadores y economías rurales.
+## 🌍 ¿Por qué es importante?
 
-## 🔍 Qué hace BioSentinel UV
+La biodiversidad no se distribuye al azar: se concentra en **zonas núcleo**, desde donde se expande hacia áreas de transición con menor riqueza ecológica. Estos núcleos son esenciales para la estabilidad de ecosistemas completos. Si se ven alterados por actividades humanas o por el cambio climático, las consecuencias pueden incluir:
 
-- 📡 Interpola imágenes satelitales Sentinel y datos del estudio científico para detectar zonas de alta relevancia ecológica.
-- 🧠 Usa modelos de machine learning para inferir zonas núcleo y de transición en regiones sin datos directos.
-- 🗺️ Proporciona una visualización web 3D interactiva del planeta con capas de calor ecológico.
-- ⚠️ Facilita la detección de riesgos por intervención humana o climática en ecosistemas clave.
+* Pérdida de servicios ecosistémicos (polinización, regulación hídrica, fertilidad del suelo).
+* Impactos negativos en la agricultura, ganadería y economías rurales.
+* Alteración de corredores biológicos esenciales para la migración y reproducción de especies.
+
+---
+
+## 🧭 ¿Qué hace BioSentinel-UV?
+
+* 🛰️ **Integra datos satelitales Copernicus Sentinel (NDVI, LST) y DEM de elevación para modelar condiciones ambientales.**
+* 🧠 **Entrena modelos de machine learning para predecir zonas núcleo y de transición de biodiversidad en regiones sin datos directos.**
+* 📈 **Genera rejillas espaciales enriquecidas con variables ambientales y predice patrones ecológicos por grupo taxonómico.**
+* 🗺️ **Visualiza los resultados en una aplicación web 3D interactiva y exporta capas como archivos GeoJSON.**
+* ⚠️ **Facilita la detección de amenazas por expansión agrícola, deforestación o eventos climáticos extremos.**
+
+---
+
+## 🧪 Detalles técnicos
+
+* Se utilizaron capas ambientales de:
+
+  * **NDVI:** Sentinel-2 SR Harmonized (*COPERNICUS/S2\_SR\_HARMONIZED*)
+  * **LST:** MODIS MOD11A2 v6.1 (convertida a grados Celsius)
+  * **DEM:** *Copernicus DEM GLO-30* (resolución de 30 m)
+* Se generó una **rejilla regular (\~1 km²)** sobre la región amazónica (Colombia), enriquecida con las variables anteriores.
+* Se entrenaron modelos por taxón (`amphibians`, `mammals`, `reptiles`, `birds`) usando como inputs: NDVI, LST, elevación y coordenadas geográficas.
+* Los outputs son predicciones de:
+
+  * `biota_overlap`
+  * `relative_occupancy`
+  * `relative_species_richness`
+* Se descartan grupos como peces (datos marítimos), insectos (caso de estudio limitado a Asia) y árboles (caso centrado en EE.UU.), aunque el flujo es escalable si se dispone de datos adecuados.
 
 ---
 
@@ -19,71 +46,64 @@ La biodiversidad global sigue un patrón no aleatorio: especies se concentran en
 
 ```plaintext
 biosentinel/
-├── frontend/         # Webapp 3D con Node.js y TypeScript
-├── backend/          # API REST y procesamiento intermedio
-├── model/            # Códigos y notebooks de IA y análisis
+├── frontend/         # Webapp 3D interactiva (Node.js + TypeScript)
+├── backend/          # API REST para servir predicciones y datos
+├── model/            # Modelos de ML, notebooks y scripts de predicción
 │   ├── notebooks/
 │   └── scripts/
-├── data/             # Imágenes Sentinel y datos de entrenamiento
+├── data/             # Datos satelitales descargados o en caché local
 │   └── sentinel_samples/
-├── docs/             # Presentaciones, papers, documentación
+├── docs/             # Documentación, papers, presentaciones
 ├── README.md
 └── .gitignore
-````
+```
 
 ---
 
-## 👥 A quién va dirigido
+## 👤 Público objetivo
 
-* **Gobiernos locales y nacionales:** para políticas de conservación y ordenamiento territorial.
-* **ONGs ambientales:** para priorizar zonas vulnerables y ejecutar campañas de protección.
-* **Investigadores:** para explorar patrones de biodiversidad y validar predicciones.
-* **Agricultores y comunidades rurales:** para entender cómo la biodiversidad impacta su entorno productivo.
+* **Tomadores de decisión (gobiernos locales y nacionales)**: para conservación, ordenamiento territorial y monitoreo.
+* **Organizaciones ambientales (ONGs, institutos de investigación)**: para priorización de áreas clave.
+* **Científicos y ecólogos**: para validar hipótesis sobre patrones de biodiversidad espacial.
+* **Comunidades locales y agricultores**: para comprender cómo la biodiversidad afecta su entorno y productividad.
 
 ---
 
 ## 🛠️ Tecnologías clave
 
-* Imágenes satelitales Sentinel (Copernicus)
-* Machine Learning con Python y PyTorch
-* Webapp 3D con Node.js + TypeScript + Three.js / Cesium.js
-* Mapas interactivos con Leaflet o WebGL
-* Infraestructura en GitHub y despliegue web
+* 🌍 **Copernicus Sentinel-2, MODIS y DEMs globales**
+* 🤖 **Machine Learning con Python (scikit-learn, PyTorch)**
+* 🗺️ **Procesamiento geoespacial con rasterio, geopandas y Earth Engine**
+* 🌐 **Visualización 3D en web con Three.js o Cesium.js**
+* ⚙️ **Infraestructura de despliegue en GitHub + API REST**
 
 ---
 
-## 📦 Estado del desarrollo
+## 🚀 Estado actual
 
-* [x] Estructura inicial del repositorio
-* [ ] Prototipo del modelo de interpolación
-* [ ] Visualización 3D en frontend
-* [ ] API para servir los datos procesados
-* [ ] MVP funcional para presentación
+* [x] Limpieza y entrenamiento de modelos por taxón
+* [x] Exportación de predicciones como CSV y GeoJSON
+* [x] Consulta remota o en caché de datos NDVI, LST y DEM
+* [ ] Visualización web interactiva en 3D
+* [ ] API de consulta dinámica por coordenadas
+* [ ] MVP completo para presentación y despliegue
 
 ---
 
 ## 📚 Referencias
 
-* **Paper Base:** [Core-to-transition biodiversity organization (Nature E\&E, 2024)](https://www.nature.com/articles/s41559-025-02724-5#Sec6)
-* **Sentinel Data Hub:** [https://scihub.copernicus.eu/](https://scihub.copernicus.eu/)
+* 📄 **Artículo base:** [Core-to-transition biodiversity organization (Nature Ecology & Evolution, 2024)](https://www.nature.com/articles/s41559-025-02724-5#Sec6)
+* 🛰️ **Copernicus Open Access Hub:** [https://scihub.copernicus.eu/](https://scihub.copernicus.eu/)
 
 ---
 
-## 🧠 Contribuciones
+## 👥 Equipo
 
-Este proyecto fue desarrollado como parte de la \[Hackathon Copernicus LAC 2025].
+Desarrollado para el **Hackathon Copernicus LAC 2025** por:
 
-Equipo:
-
-PhD. Maria Patricia Trujillo
-
-PhD. Cesar Pantoja
-
-PhD. Luz Angela Gonzalez
-
-David Alberto Guzman
-
-Jhoan Leon
-
-Sebastian Diaz
- 
+* PhD. María Patricia Trujillo
+* PhD. César Pantoja
+* PhD. Luz Ángela González
+* David Alberto Guzmán
+* Jhoan León
+* Sebastián Díaz
