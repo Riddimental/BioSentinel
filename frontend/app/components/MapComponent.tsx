@@ -1,22 +1,27 @@
 'use client';
 
 import { useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
-import L from 'leaflet';
 import { MapComponentProps } from '../types/api';
 import { getInitialMapView, getCurrentLocation, getLocationZoom } from '../utils/mapUtils';
 
-// Fix for default markers in Next.js
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
-});
+// Dynamic import for Leaflet to avoid SSR issues
+let L: any = null;
+if (typeof window !== 'undefined') {
+  L = require('leaflet');
+  
+  // Fix for default markers in Next.js
+  delete (L.Icon.Default.prototype as any)._getIconUrl;
+  L.Icon.Default.mergeOptions({
+    iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
+    iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
+    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+  });
+}
 
 export interface MapComponentRef {
-  getMap: () => L.Map | null;
-  getBounds: () => L.LatLngBounds | null;
-  addImageOverlay: (imageUrl: string, bounds: L.LatLngBounds) => void;
+  getMap: () => any;
+  getBounds: () => any;
+  addImageOverlay: (imageUrl: string, bounds: any) => void;
   removeImageOverlay: () => void;
 }
 
@@ -39,23 +44,32 @@ const MapComponent = forwardRef<MapComponentRef, MapComponentProps>(({
         mapInstance.current.removeLayer(imageOverlay.current);
       }
       
-      // Add new overlay with proper error handling for SVG data URLs
+      console.log('Adding image overlay:', { 
+        imageType: imageUrl.startsWith('data:image/png') ? 'PNG' : 'SVG',
+        imageSize: imageUrl.length,
+        bounds 
+      });
+      
+      // Add new overlay with proper error handling for PNG/SVG data URLs
       imageOverlay.current = L.imageOverlay(imageUrl, bounds, {
-        opacity: 0.6,
+        opacity: 0.7,
         interactive: false,
         className: 'biodiversity-overlay'
       });
       
       // Error handling for overlay loading
       imageOverlay.current.on('error', (e) => {
-        console.warn('Image overlay failed to load:', e);
+        console.error('Image overlay failed to load:', e);
+        console.error('Image URL:', imageUrl.substring(0, 100));
       });
       
       imageOverlay.current.on('load', () => {
         console.log('Image overlay loaded successfully');
       });
       
+      console.log('Adding overlay to map...');
       imageOverlay.current.addTo(mapInstance.current);
+      console.log('Overlay added to map');
     },
     removeImageOverlay: () => {
       if (imageOverlay.current && mapInstance.current) {
@@ -66,7 +80,7 @@ const MapComponent = forwardRef<MapComponentRef, MapComponentProps>(({
   }));
 
   useEffect(() => {
-    if (!mapContainer.current || mapInstance.current) return;
+    if (!mapContainer.current || mapInstance.current || !L) return;
 
     // Initialize map with default view
     const { center, zoom } = getInitialMapView();

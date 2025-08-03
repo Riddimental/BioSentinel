@@ -2,7 +2,6 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react';
 import dynamic from 'next/dynamic';
-import L from 'leaflet';
 import { boundsToGeoJSON, formatBoundsInfo, validateBounds, getCurrentLocation, getLocationZoom } from './utils/mapUtils';
 import { MapComponentRef } from './components/MapComponent';
 import MapSearch from './components/MapSearch';
@@ -25,15 +24,16 @@ const MapComponent = dynamic(() => import('./components/MapComponent'), {
 
 export default function Home() {
   const [selectedModel, setSelectedModel] = useState('segformer-b0-ade20k');
-  const [currentBounds, setCurrentBounds] = useState<L.LatLngBounds | null>(null);
+  const [currentBounds, setCurrentBounds] = useState<any>(null);
   const [boundsInfo, setBoundsInfo] = useState<string>('');
   const [validationError, setValidationError] = useState<string>('');
   const [showLegend, setShowLegend] = useState(false);
+  const [analyzedBounds, setAnalyzedBounds] = useState<any>(null);
   
   const mapRef = useRef<MapComponentRef>(null);
   const { analyze, isLoading, error: analysisError, result, clearResult } = useMapAnalysis();
 
-  const handleBoundsChange = useCallback((bounds: L.LatLngBounds) => {
+  const handleBoundsChange = useCallback((bounds: any) => {
     setCurrentBounds(bounds);
     setBoundsInfo(formatBoundsInfo(bounds));
     
@@ -85,10 +85,14 @@ export default function Home() {
       // Clear previous results and overlay
       clearResult();
       setShowLegend(false);
+      setAnalyzedBounds(null);
       const mapInstance = mapRef.current;
       if (mapInstance) {
         mapInstance.removeImageOverlay();
       }
+      
+      // Store the bounds being analyzed
+      setAnalyzedBounds(currentBounds);
       
       // Convert bounds to GeoJSON
       const geojson = boundsToGeoJSON(currentBounds);
@@ -108,6 +112,7 @@ export default function Home() {
   const handleClearResults = useCallback(() => {
     clearResult();
     setShowLegend(false);
+    setAnalyzedBounds(null);
     const mapInstance = mapRef.current;
     if (mapInstance) {
       mapInstance.removeImageOverlay();
@@ -116,16 +121,17 @@ export default function Home() {
 
   // Effect to display overlay when results are available
   useEffect(() => {
-    if (result && result.overlayImage && currentBounds) {
+    if (result && result.overlayImage && analyzedBounds) {
       const mapInstance = mapRef.current;
       if (mapInstance) {
-        // Add the overlay image to the map
-        mapInstance.addImageOverlay(result.overlayImage, currentBounds);
+        console.log('Using analyzed bounds for overlay:', analyzedBounds);
+        // Add the overlay image to the map using the original analyzed bounds
+        mapInstance.addImageOverlay(result.overlayImage, analyzedBounds);
         // Show the legend
         setShowLegend(true);
       }
     }
-  }, [result, currentBounds]);
+  }, [result, analyzedBounds]);
 
   return (
     <div className="h-screen flex">

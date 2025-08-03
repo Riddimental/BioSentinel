@@ -37,7 +37,7 @@ export interface ModelOption {
 
 // Component Props Types
 export interface MapComponentProps {
-  onBoundsChange?: (bounds: L.LatLngBounds) => void;
+  onBoundsChange?: (bounds: any) => void;
   className?: string;
 }
 

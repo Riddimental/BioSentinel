@@ -1,9 +1,13 @@
-import L from 'leaflet';
+// Dynamic import for Leaflet to avoid SSR issues
+let L: any = null;
+if (typeof window !== 'undefined') {
+  L = require('leaflet');
+}
 
 /**
  * Convert Leaflet bounds to GeoJSON polygon
  */
-export function boundsToGeoJSON(bounds: L.LatLngBounds): GeoJSON.Polygon {
+export function boundsToGeoJSON(bounds: any): GeoJSON.Polygon {
   const ne = bounds.getNorthEast();
   const sw = bounds.getSouthWest();
   
@@ -22,7 +26,7 @@ export function boundsToGeoJSON(bounds: L.LatLngBounds): GeoJSON.Polygon {
 /**
  * Calculate the area of a viewport in square kilometers
  */
-export function calculateViewportArea(bounds: L.LatLngBounds): number {
+export function calculateViewportArea(bounds: any): number {
   const ne = bounds.getNorthEast();
   const sw = bounds.getSouthWest();
   
@@ -40,7 +44,7 @@ export function calculateViewportArea(bounds: L.LatLngBounds): number {
 /**
  * Validate that bounds are reasonable for analysis
  */
-export function validateBounds(bounds: L.LatLngBounds): { valid: boolean; reason?: string } {
+export function validateBounds(bounds: any): { valid: boolean; reason?: string } {
   if (!bounds.isValid()) {
     return { valid: false, reason: 'Invalid bounds' };
   }
@@ -63,7 +67,7 @@ export function validateBounds(bounds: L.LatLngBounds): { valid: boolean; reason
 /**
  * Format bounds information for display
  */
-export function formatBoundsInfo(bounds: L.LatLngBounds): string {
+export function formatBoundsInfo(bounds: any): string {
   const area = calculateViewportArea(bounds);
   const ne = bounds.getNorthEast();
   const sw = bounds.getSouthWest();

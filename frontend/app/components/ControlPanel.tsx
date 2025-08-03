@@ -2,13 +2,12 @@
 
 import { useState } from 'react';
 import ModelSelector from './ModelSelector';
-import L from 'leaflet';
 import { AnalysisResponse } from '../types/api';
 
 interface ControlPanelProps {
   selectedModel: string;
   onModelChange: (modelId: string) => void;
-  currentBounds: L.LatLngBounds | null;
+  currentBounds: any;
   boundsInfo: string;
   validationError: string;
   isLoading: boolean;

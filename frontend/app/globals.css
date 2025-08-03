@@ -99,8 +99,16 @@ body {
 .biodiversity-overlay {
   transition: opacity 0.3s ease-in-out;
   border-radius: 4px;
+  pointer-events: none;
+  z-index: 400 !important;
 }
 
 .biodiversity-overlay:hover {
-  opacity: 0.8 !important;
+  opacity: 0.9 !important;
+}
+
+.biodiversity-overlay img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover;
 }
