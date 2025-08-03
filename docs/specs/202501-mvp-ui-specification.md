@@ -441,13 +441,20 @@ Create type definitions for:
 - [x] Create bounds extraction utilities
 - [x] Test viewport bounds to GeoJSON conversion
 - [x] Handle map interaction events
+- [x] Add geolocation support with automatic centering
+- [x] Implement location search functionality with Nominatim
+- [x] Add map overlay controls (search + center button)
 
 ### Sprint 3: UI Controls
-- [ ] Build ControlPanel component
-- [ ] Create ModelSelector dropdown
-- [ ] Implement "Analyze Current View" button
-- [ ] Add loading states and error messaging
-- [ ] Style components with TailwindCSS
+- [x] Build ControlPanel component with Spanish interface
+- [x] Create ModelSelector with 7 real AI/ML models
+- [x] Implement confidence threshold slider (50-95%)
+- [x] Add enhanced "Analyze Current View" button with icons
+- [x] Implement comprehensive loading states and error messaging
+- [x] Style components with TailwindCSS and custom slider styles
+- [x] Fix text contrast issues for accessibility
+- [x] Add real-time bounds validation and display
+- [x] Include step-by-step user instructions
 
 ### Sprint 4: API Layer
 - [ ] Create mock API endpoint in api/analyze/route.ts

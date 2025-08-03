@@ -127,7 +127,7 @@ export default function MapSearch({ onLocationSelect, className }: MapSearchProp
           onKeyDown={handleKeyDown}
           onFocus={() => results.length > 0 && setShowResults(true)}
           placeholder="Search for a location..."
-          className="w-full pl-10 pr-10 py-2 text-sm bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full pl-10 pr-10 py-2 text-sm bg-white text-gray-900 placeholder-gray-500 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
         />
         
         {/* Search Icon */}
@@ -164,13 +164,13 @@ export default function MapSearch({ onLocationSelect, className }: MapSearchProp
               className={`px-3 py-2 cursor-pointer text-sm border-b border-gray-100 last:border-b-0 ${
                 index === selectedIndex 
                   ? 'bg-blue-50 text-blue-900' 
-                  : 'hover:bg-gray-50'
+                  : 'hover:bg-gray-50 text-gray-900'
               }`}
             >
               <div className="font-medium truncate">
                 {formatSearchResult(result)}
               </div>
-              <div className="text-xs text-gray-500 truncate">
+              <div className="text-xs text-gray-600 truncate">
                 {result.type} • {result.lat}, {result.lon}
               </div>
             </div>
@@ -181,7 +181,7 @@ export default function MapSearch({ onLocationSelect, className }: MapSearchProp
       {/* No Results */}
       {showResults && results.length === 0 && query.length >= 2 && !isSearching && (
         <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-md shadow-lg z-[1100]">
-          <div className="px-3 py-2 text-sm text-gray-500">
+          <div className="px-3 py-2 text-sm text-gray-600">
             No locations found for "{query}"
           </div>
         </div>
