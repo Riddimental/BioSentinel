@@ -6,8 +6,8 @@ from sklearn.metrics import r2_score
 import joblib
 
 # Rutas
-input_dir = "/Users/riddimental/Documents/GitHub/BioSentinel/docs/training_data/"
-output_model_dir = "/Users/riddimental/Documents/GitHub/BioSentinel/model/BS-1.0/models/"
+input_dir = "/BioSentinel/docs/training_data/"
+output_model_dir = "/BioSentinel/model/BS-1.0/models/"
 
 
 os.makedirs(output_model_dir, exist_ok=True)
