@@ -29,6 +29,7 @@ export default function Home() {
   const [validationError, setValidationError] = useState<string>('');
   const [showLegend, setShowLegend] = useState(false);
   const [analyzedBounds, setAnalyzedBounds] = useState<any>(null);
+  const [resolutionThreshold, setResolutionThreshold] = useState(50);
   
   const mapRef = useRef<MapComponentRef>(null);
   const { analyze, isLoading, error: analysisError, result, clearResult } = useMapAnalysis();
@@ -101,13 +102,13 @@ export default function Home() {
       await analyze({
         model: selectedModel,
         geojson,
-        confidence: 75 // This will come from the ControlPanel slider later
+        resolution: resolutionThreshold
       });
-      
+
     } catch (error) {
       console.error('Analysis failed:', error);
     }
-  }, [currentBounds, selectedModel, analyze, clearResult]);
+  }, [currentBounds, selectedModel, resolutionThreshold, analyze, clearResult]);
 
   const handleClearResults = useCallback(() => {
     clearResult();
@@ -126,7 +127,10 @@ export default function Home() {
       if (mapInstance) {
         console.log('Using analyzed bounds for overlay:', analyzedBounds);
         // Add the overlay image to the map using the original analyzed bounds
-        mapInstance.addImageOverlay(result.overlayImage, analyzedBounds);
+        const overlaySrc = result.overlayImage.startsWith('data:image/')
+          ? result.overlayImage
+          : `data:image/png;base64,${result.overlayImage}`;
+        mapInstance.addImageOverlay(overlaySrc, analyzedBounds);
         // Show the legend
         setShowLegend(true);
       }
@@ -208,6 +212,8 @@ export default function Home() {
         analysisResult={result}
         analysisError={analysisError}
         onClearResults={handleClearResults}
+        resolutionThreshold={resolutionThreshold}
+        setResolutionThreshold={setResolutionThreshold}
         className="w-1/4"
       />
     </div>

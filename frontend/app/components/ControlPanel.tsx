@@ -9,6 +9,8 @@ interface ControlPanelProps {
   onModelChange: (modelId: string) => void;
   currentBounds: any;
   boundsInfo: string;
+  resolutionThreshold: number;
+  setResolutionThreshold: (value: number) => void;
   validationError: string;
   isLoading: boolean;
   onAnalyze: () => void;
@@ -23,6 +25,8 @@ export default function ControlPanel({
   onModelChange,
   currentBounds,
   boundsInfo,
+  resolutionThreshold,
+  setResolutionThreshold,
   validationError,
   isLoading,
   onAnalyze,
@@ -31,10 +35,9 @@ export default function ControlPanel({
   onClearResults,
   className
 }: ControlPanelProps) {
-  const [confidenceThreshold, setConfidenceThreshold] = useState(75);
 
   return (
-    <div className={`bg-white border-l border-gray-200 p-6 flex flex-col ${className || ''}`}>
+    <div className={`bg-white border-l border-gray-200 p-6 flex flex-col ${className || ''} max-h-[90vh] overflow-y-auto`}>
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900 mb-2">BioSentinel</h1>
@@ -49,27 +52,28 @@ export default function ControlPanel({
         />
       </div>
 
-      {/* Confidence Threshold (Optional Feature) */}
+      {/* Image Resolution (Optional Feature) */}
       <div className="mb-6">
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Umbral de Confianza
+          Resolución de Imagen
         </label>
         <div className="flex items-center space-x-3">
           <input
             type="range"
-            min="50"
-            max="95"
+            min="10"
+            max="50"
             step="5"
-            value={confidenceThreshold}
-            onChange={(e) => setConfidenceThreshold(Number(e.target.value))}
+            value={resolutionThreshold}
+            onChange={(e) => setResolutionThreshold(Number(e.target.value))}
             className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
           />
           <span className="text-sm font-medium text-gray-700 min-w-[3rem]">
-            {confidenceThreshold}%
+            {resolutionThreshold}m
           </span>
         </div>
         <p className="text-xs text-gray-500 mt-1">
-          Nivel de certeza requerido para las clasificaciones
+          Resolución de imagen para el análisis. Un valor más alto puede mejorar la precisión, 
+          pero también limitar el área de interes.
         </p>
       </div>
 
@@ -181,7 +185,7 @@ export default function ControlPanel({
           <ol className="text-xs text-blue-700 space-y-1 list-decimal list-inside">
             <li>Navega el mapa a tu área de interés</li>
             <li>Selecciona el modelo de clasificación</li>
-            <li>Ajusta el umbral de confianza si es necesario</li>
+            <li>Ajusta la resolución del área de interes si es necesario</li>
             <li>Haz clic en "Analizar Vista Actual"</li>
           </ol>
         </div>

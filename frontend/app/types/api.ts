@@ -3,20 +3,20 @@
 export interface AnalysisRequest {
   model: string;
   geojson: GeoJSON.Polygon;
-  confidence?: number;
+  resolution?: number;
 }
 
 export interface ClassificationResult {
   name: string;
   color: string;
   count: number;
-  confidence: number;
+  resolution: number;
 }
 
 export interface AnalysisResponse {
   success: boolean;
   model: string;
-  confidence: number;
+  resolution: number;
   bounds: GeoJSON.Polygon;
   classifications: Record<string, ClassificationResult>;
   overlayImage: string; // Base64 encoded image
