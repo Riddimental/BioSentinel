@@ -436,11 +436,11 @@ Create type definitions for:
 - [x] Configure TailwindCSS for map + panel layout
 
 ### Sprint 2: Map Core
-- [ ] Implement MapComponent with Leaflet integration
-- [ ] Add OpenStreetMap tile layer
-- [ ] Create bounds extraction utilities
-- [ ] Test viewport bounds to GeoJSON conversion
-- [ ] Handle map interaction events
+- [x] Implement MapComponent with Leaflet integration
+- [x] Add OpenStreetMap tile layer
+- [x] Create bounds extraction utilities
+- [x] Test viewport bounds to GeoJSON conversion
+- [x] Handle map interaction events
 
 ### Sprint 3: UI Controls
 - [ ] Build ControlPanel component
