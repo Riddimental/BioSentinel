@@ -39,10 +39,20 @@ const MapComponent = forwardRef<MapComponentRef, MapComponentProps>(({
         mapInstance.current.removeLayer(imageOverlay.current);
       }
       
-      // Add new overlay
+      // Add new overlay with proper error handling for SVG data URLs
       imageOverlay.current = L.imageOverlay(imageUrl, bounds, {
-        opacity: 0.7,
-        interactive: false
+        opacity: 0.6,
+        interactive: false,
+        className: 'biodiversity-overlay'
+      });
+      
+      // Error handling for overlay loading
+      imageOverlay.current.on('error', (e) => {
+        console.warn('Image overlay failed to load:', e);
+      });
+      
+      imageOverlay.current.on('load', () => {
+        console.log('Image overlay loaded successfully');
       });
       
       imageOverlay.current.addTo(mapInstance.current);

@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import L from 'leaflet';
 import { boundsToGeoJSON, formatBoundsInfo, validateBounds, getCurrentLocation, getLocationZoom } from './utils/mapUtils';
 import { MapComponentRef } from './components/MapComponent';
 import MapSearch from './components/MapSearch';
 import ControlPanel from './components/ControlPanel';
+import Legend from './components/Legend';
 import { useMapAnalysis } from './hooks/useMapAnalysis';
 
 // Dynamically import MapComponent to avoid SSR issues
@@ -27,6 +28,7 @@ export default function Home() {
   const [currentBounds, setCurrentBounds] = useState<L.LatLngBounds | null>(null);
   const [boundsInfo, setBoundsInfo] = useState<string>('');
   const [validationError, setValidationError] = useState<string>('');
+  const [showLegend, setShowLegend] = useState(false);
   
   const mapRef = useRef<MapComponentRef>(null);
   const { analyze, isLoading, error: analysisError, result, clearResult } = useMapAnalysis();
@@ -80,8 +82,13 @@ export default function Home() {
     }
 
     try {
-      // Clear previous results
+      // Clear previous results and overlay
       clearResult();
+      setShowLegend(false);
+      const mapInstance = mapRef.current;
+      if (mapInstance) {
+        mapInstance.removeImageOverlay();
+      }
       
       // Convert bounds to GeoJSON
       const geojson = boundsToGeoJSON(currentBounds);
@@ -97,6 +104,28 @@ export default function Home() {
       console.error('Analysis failed:', error);
     }
   }, [currentBounds, selectedModel, analyze, clearResult]);
+
+  const handleClearResults = useCallback(() => {
+    clearResult();
+    setShowLegend(false);
+    const mapInstance = mapRef.current;
+    if (mapInstance) {
+      mapInstance.removeImageOverlay();
+    }
+  }, [clearResult]);
+
+  // Effect to display overlay when results are available
+  useEffect(() => {
+    if (result && result.overlayImage && currentBounds) {
+      const mapInstance = mapRef.current;
+      if (mapInstance) {
+        // Add the overlay image to the map
+        mapInstance.addImageOverlay(result.overlayImage, currentBounds);
+        // Show the legend
+        setShowLegend(true);
+      }
+    }
+  }, [result, currentBounds]);
 
   return (
     <div className="h-screen flex">
@@ -130,6 +159,35 @@ export default function Home() {
             </svg>
           </button>
         </div>
+        
+        {/* Legend Overlay */}
+        {showLegend && result && (
+          <div className="absolute bottom-4 left-4 z-[1000]">
+            <Legend
+              analysisResult={result}
+              onClose={() => setShowLegend(false)}
+            />
+          </div>
+        )}
+        
+        {/* Legend Toggle Button (when legend is hidden but results exist) */}
+        {!showLegend && result && (
+          <div className="absolute bottom-4 left-4 z-[1000]">
+            <button
+              onClick={() => setShowLegend(true)}
+              className="bg-white hover:bg-gray-50 border border-gray-300 rounded-lg p-3 shadow-lg transition-colors"
+              title="Mostrar leyenda"
+            >
+              <div className="flex items-center space-x-2">
+                <div className="w-3 h-3 bg-gradient-to-r from-green-400 to-blue-500 rounded"></div>
+                <span className="text-sm font-medium text-gray-700">Leyenda</span>
+                <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 11l3-3m0 0l3 3m-3-3v8" />
+                </svg>
+              </div>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Control Panel - 25% width */}
@@ -143,7 +201,7 @@ export default function Home() {
         onAnalyze={handleAnalyze}
         analysisResult={result}
         analysisError={analysisError}
-        onClearResults={clearResult}
+        onClearResults={handleClearResults}
         className="w-1/4"
       />
     </div>

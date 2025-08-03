@@ -94,3 +94,13 @@ body {
   border-radius: 4px;
   background: #e5e7eb;
 }
+
+/* Biodiversity overlay styles */
+.biodiversity-overlay {
+  transition: opacity 0.3s ease-in-out;
+  border-radius: 4px;
+}
+
+.biodiversity-overlay:hover {
+  opacity: 0.8 !important;
+}
