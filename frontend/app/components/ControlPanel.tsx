@@ -39,10 +39,15 @@ export default function ControlPanel({
   return (
     <div className={`bg-white border-l border-gray-200 p-6 flex flex-col ${className || ''} max-h-[90vh] overflow-y-auto`}>
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">BioSentinel</h1>
-        <p className="text-sm text-gray-600">Análisis de biodiversidad con IA</p>
+      <div className="mb-6 flex items-center justify-center space-x-3">
+        <img
+          src="/logo.png"
+          alt="BioSentinel Logo"
+          className="h-10 w-auto"
+        />
+        <h1 className="text-2xl font-bold text-gray-900">BioSentinel-UV</h1>
       </div>
+      <p className="text-sm text-gray-600">Análisis de biodiversidad con IA</p>
 
       {/* Model Selection */}
       <div className="mb-6">
@@ -72,8 +77,10 @@ export default function ControlPanel({
           </span>
         </div>
         <p className="text-xs text-gray-500 mt-1">
-          Resolución de imagen para el análisis. Un valor más alto puede mejorar la precisión, 
-          pero también limitar el área de interes.
+          Resolución de imagen para el análisis: Un valor más alto puede mejorar la precisión 
+          de los resultados, pero también reduce el tamaño del área que se puede analizar. 
+          Si seleccionas la resolución más alta (10m por píxel), 
+          el área de interés debe ser menor a aproximadamente 839 km².
         </p>
       </div>
 
@@ -196,7 +203,7 @@ export default function ControlPanel({
 
       {/* Footer */}
       <div className="text-xs text-gray-400 text-center border-t border-gray-100 pt-4">
-        <p>BioSentinel MVP v1.0</p>
+        <p>BioSentinel-UV MVP v1.0</p>
         <p className="mt-1">Copernicus LAC 2025 Hackathon</p>
       </div>
     </div>
