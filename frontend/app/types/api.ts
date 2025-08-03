@@ -7,13 +7,26 @@ export interface AnalysisRequest {
 }
 
 export interface ClassificationResult {
+  name: string;
   color: string;
   count: number;
+  confidence: number;
 }
 
 export interface AnalysisResponse {
+  success: boolean;
+  model: string;
+  confidence: number;
+  bounds: GeoJSON.Polygon;
   classifications: Record<string, ClassificationResult>;
-  image: string; // Base64 encoded image
+  overlayImage: string; // Base64 encoded image
+  metadata: {
+    totalPixels: number;
+    processingTime: number;
+    timestamp: string;
+    categories: number;
+  };
+  error?: string;
 }
 
 export interface ModelOption {

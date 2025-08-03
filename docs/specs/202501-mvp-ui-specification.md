@@ -457,11 +457,16 @@ Create type definitions for:
 - [x] Include step-by-step user instructions
 
 ### Sprint 4: API Layer
-- [ ] Create mock API endpoint in api/analyze/route.ts
-- [ ] Implement dummy image generation
-- [ ] Build useMapAnalysis custom hook
-- [ ] Test API request/response cycle
-- [ ] Add error simulation and handling
+- [x] Create mock API endpoint in api/analyze/route.ts with 8 biodiversity categories
+- [x] Implement dynamic SVG-based overlay image generation
+- [x] Build useMapAnalysis custom hook with comprehensive state management
+- [x] Integrate full API request/response cycle with real HTTP calls
+- [x] Add 5% error simulation and comprehensive error handling
+- [x] Implement model-specific processing times and behaviors
+- [x] Add deterministic results based on viewport bounds for testing
+- [x] Create live results display in control panel with color-coded legend
+- [x] Add analysis metadata display (processing time, categories, model info)
+- [x] Implement clear/retry functionality for results
 
 ### Sprint 5: Results Display
 - [ ] Integrate ImageOverlay for classification results

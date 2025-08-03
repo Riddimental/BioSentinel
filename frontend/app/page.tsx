@@ -7,6 +7,7 @@ import { boundsToGeoJSON, formatBoundsInfo, validateBounds, getCurrentLocation, 
 import { MapComponentRef } from './components/MapComponent';
 import MapSearch from './components/MapSearch';
 import ControlPanel from './components/ControlPanel';
+import { useMapAnalysis } from './hooks/useMapAnalysis';
 
 // Dynamically import MapComponent to avoid SSR issues
 const MapComponent = dynamic(() => import('./components/MapComponent'), {
@@ -23,12 +24,12 @@ const MapComponent = dynamic(() => import('./components/MapComponent'), {
 
 export default function Home() {
   const [selectedModel, setSelectedModel] = useState('segformer-b0-ade20k');
-  const [isLoading, setIsLoading] = useState(false);
   const [currentBounds, setCurrentBounds] = useState<L.LatLngBounds | null>(null);
   const [boundsInfo, setBoundsInfo] = useState<string>('');
   const [validationError, setValidationError] = useState<string>('');
   
   const mapRef = useRef<MapComponentRef>(null);
+  const { analyze, isLoading, error: analysisError, result, clearResult } = useMapAnalysis();
 
   const handleBoundsChange = useCallback((bounds: L.LatLngBounds) => {
     setCurrentBounds(bounds);
@@ -74,33 +75,28 @@ export default function Home() {
     
     const validation = validateBounds(currentBounds);
     if (!validation.valid) {
-      alert(`Cannot analyze: ${validation.reason}`);
+      alert(`No se puede analizar: ${validation.reason}`);
       return;
     }
 
-    setIsLoading(true);
-    
     try {
+      // Clear previous results
+      clearResult();
+      
       // Convert bounds to GeoJSON
       const geojson = boundsToGeoJSON(currentBounds);
       
-      // Log for testing
-      console.log('Current bounds:', currentBounds);
-      console.log('GeoJSON conversion:', geojson);
-      console.log('Bounds info:', boundsInfo);
+      // Make API call
+      await analyze({
+        model: selectedModel,
+        geojson,
+        confidence: 75 // This will come from the ControlPanel slider later
+      });
       
-      // TODO: Call API with geojson
-      // Simulate API call for now
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      alert('Analysis complete! Check console for GeoJSON output.');
     } catch (error) {
       console.error('Analysis failed:', error);
-      alert('Analysis failed. Please try again.');
-    } finally {
-      setIsLoading(false);
     }
-  }, [currentBounds, boundsInfo]);
+  }, [currentBounds, selectedModel, analyze, clearResult]);
 
   return (
     <div className="h-screen flex">
@@ -145,6 +141,9 @@ export default function Home() {
         validationError={validationError}
         isLoading={isLoading}
         onAnalyze={handleAnalyze}
+        analysisResult={result}
+        analysisError={analysisError}
+        onClearResults={clearResult}
         className="w-1/4"
       />
     </div>
