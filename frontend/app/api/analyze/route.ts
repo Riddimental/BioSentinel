@@ -48,7 +48,7 @@ const CLASSIFICATION_CATEGORIES = {
 /**
  * Generate a deterministic but varied classification result based on viewport bounds
  */
-function generateClassificationResults(bounds: any, model: string, confidence: number): Record<string, ClassificationResult> {
+function generateClassificationResults(bounds: any, model: string, resolution: number): Record<string, ClassificationResult> {
   const results: Record<string, ClassificationResult> = {};
   
   // Use bounds as seed for deterministic randomness
@@ -70,8 +70,8 @@ function generateClassificationResults(bounds: any, model: string, confidence: n
   
   // Generate results for each category
   Object.entries(CLASSIFICATION_CATEGORIES).forEach(([key, category], index) => {
-    // Apply confidence threshold - lower confidence = more variation
-    const confidenceMultiplier = 0.5 + (confidence / 100) * 0.5;
+    // Apply resolution threshold - lower resolution = more variation
+    const resolutionMultiplier = 0.5 + (resolution / 100) * 0.5;
     
     // Calculate count with some randomness and model-specific adjustments
     const baseVariation = random(index * 100) * 0.6 + 0.7; // 0.7 to 1.3 range
@@ -81,7 +81,7 @@ function generateClassificationResults(bounds: any, model: string, confidence: n
       category.baseCount * 
       baseVariation * 
       modelAdjustment * 
-      confidenceMultiplier
+      resolutionMultiplier
     );
     
     // Only include categories with significant presence
@@ -90,7 +90,7 @@ function generateClassificationResults(bounds: any, model: string, confidence: n
         name: category.name,
         color: category.color,
         count: Math.max(count, 25), // Minimum count
-        confidence: Math.min(95, confidence + random(index * 25) * 10 - 5) // ±5% variation
+        resolution: Math.min(95, resolution + random(index * 25) * 10 - 5) // ±5% variation
       };
     }
   });
@@ -194,7 +194,7 @@ function getProcessingTime(model: string): number {
 export async function POST(request: NextRequest) {
   try {
     const body: AnalysisRequest = await request.json();
-    const { model, geojson, confidence = 75 } = body;
+    const { model, geojson, resolution = 75 } = body;
     
     // Validation
     if (!model || !geojson) {
@@ -224,7 +224,7 @@ export async function POST(request: NextRequest) {
     }
     
     // Generate mock results
-    const classifications = generateClassificationResults(geojson, model, confidence);
+    const classifications = generateClassificationResults(geojson, model, resolution);
     const overlayImage = generateMockOverlayImage(classifications);
     
     // Calculate total pixels/areas
@@ -233,7 +233,7 @@ export async function POST(request: NextRequest) {
     const response: AnalysisResponse = {
       success: true,
       model,
-      confidence,
+      resolution,
       bounds: geojson,
       classifications,
       overlayImage,

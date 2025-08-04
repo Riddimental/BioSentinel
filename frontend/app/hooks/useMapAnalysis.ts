@@ -24,7 +24,7 @@ export function useMapAnalysis(): UseMapAnalysisReturn {
     try {
       console.log('Starting analysis with request:', request);
       
-      const response = await fetch('/api/analyze', {
+      const response = await fetch('http://127.0.0.1:8000/classify_image/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
