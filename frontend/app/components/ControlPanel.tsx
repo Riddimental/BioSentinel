@@ -172,7 +172,7 @@ export default function ControlPanel({
                 {isLoadingDummy ? (
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Aplicando BS-1.0
+                    Aplicando BS-1.0...
                   </>
                 ) : (
                   <>
