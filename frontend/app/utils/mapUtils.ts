@@ -218,3 +218,16 @@ export function formatSearchResult(result: GeocodingResult): string {
   // Show first 3 parts for brevity (e.g., "City, State, Country")
   return parts.slice(0, 3).join(', ');
 }
+
+type HeatmapPoint = [number, number, number]; // [lat, lng, intensity]
+
+export function extractHeatmapData(
+  geojson: any,
+  property: 'Biota_Overlap' | 'Rel_Occupancy' | 'Rel_Species_Richness'
+): HeatmapPoint[] {
+  return geojson.features.map((f: any) => {
+    const [lng, lat] = f.geometry.coordinates;
+    const value = f.properties[property];
+    return [lat, lng, value]; // heatmap expects [lat, lng, intensity]
+  });
+}

@@ -30,6 +30,14 @@ export default function Home() {
   const [showLegend, setShowLegend] = useState(false);
   const [analyzedBounds, setAnalyzedBounds] = useState<any>(null);
   const [resolutionThreshold, setResolutionThreshold] = useState(50);
+  const [selectedTaxon, setSelectedTaxon] = useState('mammals');
+  const [selectedMetrics, setSelectedMetrics] = useState({
+    biotaOverlap: false,
+    richness: true,
+    occupancy: false,
+  });
+
+  
   
   const mapRef = useRef<MapComponentRef>(null);
   const { analyze, isLoading, error: analysisError, result, clearResult } = useMapAnalysis();
@@ -110,6 +118,34 @@ export default function Home() {
     }
   }, [currentBounds, selectedModel, resolutionThreshold, analyze, clearResult]);
 
+  const handleShowDummyGeoJSON = async () => {
+    const taxa_path = `/GEOJsons/${selectedTaxon}.geojson`;
+    const response = await fetch(taxa_path);
+    const geojsonData = await response.json();
+    //const location = await getCurrentLocation();
+    //const zoom = getLocationZoom();
+
+    //generate the geojson with MakeGeojson(lon, lat, radius, resolution), base radius and resolucion in propotion to zoom
+    //const geojsonData = run_model_for_location(location.lng, location.lat, radius_km=zoom, resolution=1/zoom)
+
+    if (!mapRef.current) return;
+    console.log('model selected: ',selectedModel)
+    console.log('taxa selected: ',selectedTaxon)
+
+    //mapRef.current.addGeoJSONLayer(geojsonData);
+
+    if (selectedMetrics.richness) {
+      mapRef.current?.generateRichnessImageOverlay(geojsonData);
+    }
+    if (selectedMetrics.biotaOverlap) {
+      mapRef.current?.generateBiotaImageOverlay(geojsonData);
+    }
+    if (selectedMetrics.occupancy) {
+      mapRef.current?.generateOccupancyImageOverlay(geojsonData);
+    }
+
+  };
+
   const handleClearResults = useCallback(() => {
     clearResult();
     setShowLegend(false);
@@ -136,29 +172,6 @@ export default function Home() {
       }
     }
   }, [result, analyzedBounds]);
-
-  // Nueva función para cargar dummy.geojson y mostrar en mapa
-  const handleShowDummyGeoJSON = async () => {
-    if (!mapRef.current) return;
-
-    try {
-      // Cargar dummy.geojson de la carpeta public
-      const response = await fetch('/dummy.geojson');
-      if (!response.ok) {
-        throw new Error('No se pudo cargar dummy.geojson');
-      }
-      const geojsonData = await response.json();
-
-      // Eliminar capa GeoJSON previa si existe
-      mapRef.current.removeGeoJSONLayer();
-
-      // Agregar capa GeoJSON al mapa
-      mapRef.current.addGeoJSONLayer(geojsonData);
-    } catch (error) {
-      console.error('Error cargando geojson:', error);
-      alert('Error cargando el archivo GeoJSON.');
-    }
-  };
 
   return (
     <div className="h-screen flex">
@@ -237,8 +250,12 @@ export default function Home() {
         onClearResults={handleClearResults}
         resolutionThreshold={resolutionThreshold}
         setResolutionThreshold={setResolutionThreshold}
-        onShowDummyGeoJSON={handleShowDummyGeoJSON}
         className="w-1/4"
+        onShowDummyGeoJSON={handleShowDummyGeoJSON}
+        selectedMetrics={selectedMetrics}
+        setSelectedMetrics={setSelectedMetrics}
+        selectedTaxon={selectedTaxon}
+        onTaxonChange={setSelectedTaxon}
       />
     </div>
   );
