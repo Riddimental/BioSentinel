@@ -4,7 +4,7 @@ interface Model {
   id: string;
   name: string;
   description: string;
-  category: 'transformer' | 'segmentation' | 'multimodal' | 'clustering' | 'cnn';
+  category: 'transformer' | 'segmentation' | 'multimodal' | 'clustering' | 'cnn' | 'tree-based';
 }
 
 const models: Model[] = [
@@ -51,11 +51,13 @@ const models: Model[] = [
     category: 'cnn'
   },
   {
-    id: 'bs1.0-birds',
-    name: 'BS1.0-birds',
-    description: 'BioSentinel 1.0 es un modelo especializado en detección de aves, entrenado con imágenes de satélite y datos de campo. Utiliza el algoritmo de Random Forest.',
-    category: 'cnn'
-  },
+    id: 'bs1.0',
+    name: 'BS1.0',
+    description: 'BS-1.0 es un modelo enfocado en la detección de diversidad biológica. Estima métricas como riqueza (richness), ocupación (occupancy) y solapamiento de biota (biota overlap) para distintos grupos taxonómicos, incluyendo aves, mamíferos, reptiles y anfibios, a partir de imágenes satelitales y datos de campo. Está basado en el algoritmo Random Forest.',
+    category: 'tree-based'
+  }
+
+,
 ];
 
 interface ModelSelectorProps {
@@ -74,6 +76,7 @@ export default function ModelSelector({ selectedModel, onModelChange, className 
       case 'multimodal': return 'bg-purple-100 text-purple-800';
       case 'clustering': return 'bg-orange-100 text-orange-800';
       case 'cnn': return 'bg-red-100 text-red-800';
+      case 'tree-based': return 'bg-yellow-100 text-yellow-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -85,6 +88,7 @@ export default function ModelSelector({ selectedModel, onModelChange, className 
       case 'multimodal': return 'Multimodal';
       case 'clustering': return 'Clustering';
       case 'cnn': return 'CNN';
+      case 'tree-based': return 'Tree-based';
       default: return 'Otro';
     }
   };

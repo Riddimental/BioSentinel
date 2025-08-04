@@ -25,11 +25,11 @@ export interface MapComponentRef {
   getBounds: () => any;
   addImageOverlay: (imageUrl: string, bounds: any) => void;
   removeImageOverlay: () => void;
-  addHeatmapLayer: (data: [number, number, number][], label: string) => void;
-  removeHeatmapLayer: (label: string) => void;
-  removeAllHeatmapLayers: () => void;
   addGeoJSONLayer: (geojsonData: GeoJSON.GeoJsonObject) => void;
   removeGeoJSONLayer: () => void;
+  generateRichnessImageOverlay: (geojsonData: GeoJSON.FeatureCollection) => void;
+  generateOccupancyImageOverlay: (geojsonData: GeoJSON.FeatureCollection) => void;
+  generateBiotaImageOverlay: (geojsonData: GeoJSON.FeatureCollection) => void;
 }
 
 
@@ -41,42 +41,280 @@ const MapComponent = forwardRef<MapComponentRef, MapComponentProps>(({
   const mapInstance = useRef<L.Map | null>(null);
   const imageOverlay = useRef<L.ImageOverlay | null>(null);
   const geoJsonLayer = useRef<L.GeoJSON | null>(null);
-  const layersRef = useRef<{ label: string; layer: any }[]>([]);
 
 
   useImperativeHandle(ref, () => ({
       getMap: () => mapInstance.current,
       getBounds: () => mapInstance.current?.getBounds() || null,
 
-      addHeatmapLayer: (data: [number, number, number][], label: string) => {
+      generateOccupancyImageOverlay: async (geojsonData: GeoJSON.FeatureCollection) => {
         if (!mapInstance.current) return;
 
-        const heatLayer = (L as any).heatLayer(data, {
-          radius: 20,
-          blur: 15,
-          maxZoom: 17,
-        }).addTo(mapInstance.current);
+        const points = geojsonData.features
+          .map((f: any) => {
+            const [lng, lat] = f.geometry.coordinates;
+            const val = f.properties?.Rel_Occupancy;
+            return (lat && lng && typeof val === 'number') ? { lat, lng, value: val } : null;
+          })
+          .filter(Boolean) as any[];
 
-        layersRef.current.push({ label, layer: heatLayer });
-      },
+        if (points.length === 0) {
+          console.warn('No valid occupancy points found.');
+          return;
+        }
 
-      removeHeatmapLayer: (label: string) => {
-        if (!mapInstance.current) return;
+        const latitudes = points.map(p => p.lat);
+        const longitudes = points.map(p => p.lng);
+        const bounds = L.latLngBounds(
+          [Math.min(...latitudes), Math.min(...longitudes)],
+          [Math.max(...latitudes), Math.max(...longitudes)]
+        );
 
-        const index = layersRef.current.findIndex(l => l.label === label);
-        if (index !== -1) {
-          mapInstance.current.removeLayer(layersRef.current[index].layer);
-          layersRef.current.splice(index, 1);
+        const width = 256;
+        const height = 256;
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        const grid: number[][] = [];
+        for (let y = 0; y < height; y++) {
+          const row: number[] = [];
+          for (let x = 0; x < width; x++) {
+            const lat = bounds.getSouth() + (bounds.getNorth() - bounds.getSouth()) * (1 - y / height);
+            const lng = bounds.getWest() + (bounds.getEast() - bounds.getWest()) * (x / width);
+
+            let num = 0, den = 0;
+            for (const p of points) {
+              const d = Math.hypot(lat - p.lat, lng - p.lng) + 1e-6;
+              const w = 1 / (d ** 2);
+              num += p.value * w;
+              den += w;
+            }
+            const interpolated = num / den;
+            row.push(interpolated);
+          }
+          grid.push(row);
+        }
+
+        const flat = grid.flat();
+        const min = Math.min(...flat);
+        const max = Math.max(...flat);
+
+        for (let y = 0; y < height; y++) {
+          for (let x = 0; x < width; x++) {
+            const norm = (grid[y][x] - min) / (max - min + 1e-6);
+            const r = Math.round(255 * norm);
+            const b = Math.round(255 * (1 - norm));
+            ctx.fillStyle = `rgb(${r},0,${b})`;
+            ctx.fillRect(x, y, 1, 1);
+          }
+        }
+
+        const imageUrl = canvas.toDataURL();
+        if (imageOverlay.current) {
+          mapInstance.current.removeLayer(imageOverlay.current);
+        }
+        imageOverlay.current = L.imageOverlay(imageUrl, bounds, {
+          opacity: 0.7,
+          interactive: false,
+          className: 'occupancy-overlay'
+        });
+        imageOverlay.current.addTo(mapInstance.current);
+
+        // Hacer zoom a los bounds del overlay
+        try {
+          const overlayBounds = imageOverlay.current.getBounds();
+          if (overlayBounds.isValid()) {
+            mapInstance.current.fitBounds(overlayBounds);
+          }
+        } catch (e) {
+          console.warn('No bounds available for image overlay');
         }
       },
 
-      removeAllHeatmapLayers: () => {
+
+      generateBiotaImageOverlay: async (geojsonData: GeoJSON.FeatureCollection) => {
         if (!mapInstance.current) return;
 
-        layersRef.current.forEach(({ layer }) => {
-          mapInstance.current.removeLayer(layer);
+        const points = geojsonData.features
+          .map((f: any) => {
+            const [lng, lat] = f.geometry.coordinates;
+            const val = f.properties?.Biota_Overlap;
+            return (lat && lng && typeof val === 'number') ? { lat, lng, value: val } : null;
+          })
+          .filter(Boolean) as any[];
+
+        if (points.length === 0) {
+          console.warn('No valid biota overlap points found.');
+          return;
+        }
+
+        const latitudes = points.map(p => p.lat);
+        const longitudes = points.map(p => p.lng);
+        const bounds = L.latLngBounds(
+          [Math.min(...latitudes), Math.min(...longitudes)],
+          [Math.max(...latitudes), Math.max(...longitudes)]
+        );
+
+        const width = 256;
+        const height = 256;
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        const grid: number[][] = [];
+        for (let y = 0; y < height; y++) {
+          const row: number[] = [];
+          for (let x = 0; x < width; x++) {
+            const lat = bounds.getSouth() + (bounds.getNorth() - bounds.getSouth()) * (1 - y / height);
+            const lng = bounds.getWest() + (bounds.getEast() - bounds.getWest()) * (x / width);
+
+            let num = 0, den = 0;
+            for (const p of points) {
+              const d = Math.hypot(lat - p.lat, lng - p.lng) + 1e-6;
+              const w = 1 / (d ** 2);
+              num += p.value * w;
+              den += w;
+            }
+            const interpolated = num / den;
+            row.push(interpolated);
+          }
+          grid.push(row);
+        }
+
+        const flat = grid.flat();
+        const min = Math.min(...flat);
+        const max = Math.max(...flat);
+
+        for (let y = 0; y < height; y++) {
+          for (let x = 0; x < width; x++) {
+            const norm = (grid[y][x] - min) / (max - min + 1e-6);
+            const r = Math.round(255 * norm);
+            const b = Math.round(255 * (1 - norm));
+            ctx.fillStyle = `rgb(${r},0,${b})`;
+            ctx.fillRect(x, y, 1, 1);
+          }
+        }
+
+        const imageUrl = canvas.toDataURL();
+        if (imageOverlay.current) {
+          mapInstance.current.removeLayer(imageOverlay.current);
+        }
+        imageOverlay.current = L.imageOverlay(imageUrl, bounds, {
+          opacity: 0.7,
+          interactive: false,
+          className: 'biota-overlay'
         });
-        layersRef.current = [];
+        imageOverlay.current.addTo(mapInstance.current);
+
+        // Hacer zoom a los bounds del overlay
+        try {
+          const overlayBounds = imageOverlay.current.getBounds();
+          if (overlayBounds.isValid()) {
+            mapInstance.current.fitBounds(overlayBounds);
+          }
+        } catch (e) {
+          console.warn('No bounds available for image overlay');
+        }
+      },
+
+
+      generateRichnessImageOverlay: async (geojsonData: GeoJSON.FeatureCollection) => {
+        if (!mapInstance.current) return;
+
+        // 1. Extraer puntos
+        const points: { lat: number; lng: number; value: number }[] = geojsonData.features
+          .map((f: any) => {
+            const [lng, lat] = f.geometry.coordinates;
+            const val = f.properties?.Rel_Species_Richness;
+            return (lat && lng && typeof val === 'number') ? { lat, lng, value: val } : null;
+          })
+          .filter(Boolean) as any[];
+
+        if (points.length === 0) {
+          console.warn('No valid richness points found.');
+          return;
+        }
+
+        // 2. Determinar bounds
+        const latitudes = points.map(p => p.lat);
+        const longitudes = points.map(p => p.lng);
+        const bounds = L.latLngBounds(
+          [Math.min(...latitudes), Math.min(...longitudes)],
+          [Math.max(...latitudes), Math.max(...longitudes)]
+        );
+
+        // 3. Crear canvas
+        const width = 256;
+        const height = 256;
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        // 4. Interpolar valores en grid (IDW simple)
+        const grid: number[][] = [];
+        for (let y = 0; y < height; y++) {
+          const row: number[] = [];
+          for (let x = 0; x < width; x++) {
+            const lat = bounds.getSouth() + (bounds.getNorth() - bounds.getSouth()) * (1 - y / height);
+            const lng = bounds.getWest() + (bounds.getEast() - bounds.getWest()) * (x / width);
+
+            // IDW (inverse distance weighting)
+            let num = 0, den = 0;
+            for (const p of points) {
+              const d = Math.hypot(lat - p.lat, lng - p.lng) + 1e-6;
+              const w = 1 / (d ** 2);
+              num += p.value * w;
+              den += w;
+            }
+            const interpolated = num / den;
+            row.push(interpolated);
+          }
+          grid.push(row);
+        }
+
+        // 5. Normalizar e imprimir como rojo-azul
+        const flat = grid.flat();
+        const min = Math.min(...flat);
+        const max = Math.max(...flat);
+
+        for (let y = 0; y < height; y++) {
+          for (let x = 0; x < width; x++) {
+            const norm = (grid[y][x] - min) / (max - min + 1e-6);
+            const r = Math.round(255 * norm);
+            const b = Math.round(255 * (1 - norm));
+            ctx.fillStyle = `rgb(${r},0,${b})`;
+            ctx.fillRect(x, y, 1, 1);
+          }
+        }
+
+        // 6. Convertir a imagen y mostrar
+        const imageUrl = canvas.toDataURL();
+        if (imageOverlay.current) {
+          mapInstance.current.removeLayer(imageOverlay.current);
+        }
+        imageOverlay.current = L.imageOverlay(imageUrl, bounds, {
+          opacity: 0.7,
+          interactive: false,
+          className: 'richness-overlay'
+        });
+        imageOverlay.current.addTo(mapInstance.current);
+
+        // Hacer zoom a los bounds del overlay
+        try {
+          const overlayBounds = imageOverlay.current.getBounds();
+          if (overlayBounds.isValid()) {
+            mapInstance.current.fitBounds(overlayBounds);
+          }
+        } catch (e) {
+          console.warn('No bounds available for image overlay');
+        }
       },
 
       addImageOverlay: (imageUrl: string, bounds: L.LatLngBounds) => {

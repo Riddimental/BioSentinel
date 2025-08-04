@@ -30,6 +30,13 @@ export default function Home() {
   const [showLegend, setShowLegend] = useState(false);
   const [analyzedBounds, setAnalyzedBounds] = useState<any>(null);
   const [resolutionThreshold, setResolutionThreshold] = useState(50);
+  const [selectedTaxon, setSelectedTaxon] = useState('mammals');
+  const [selectedMetrics, setSelectedMetrics] = useState({
+    biotaOverlap: false,
+    richness: true,
+    occupancy: false,
+  });
+
   
   
   const mapRef = useRef<MapComponentRef>(null);
@@ -112,64 +119,32 @@ export default function Home() {
   }, [currentBounds, selectedModel, resolutionThreshold, analyze, clearResult]);
 
   const handleShowDummyGeoJSON = async () => {
+    const taxa_path = `/GEOJsons/${selectedTaxon}.geojson`;
+    const response = await fetch(taxa_path);
+    const geojsonData = await response.json();
+    //const location = await getCurrentLocation();
+    //const zoom = getLocationZoom();
+
+    //generate the geojson with MakeGeojson(lon, lat, radius, resolution), base radius and resolucion in propotion to zoom
+    //const geojsonData = run_model_for_location(location.lng, location.lat, radius_km=zoom, resolution=1/zoom)
+
     if (!mapRef.current) return;
+    console.log('model selected: ',selectedModel)
+    console.log('taxa selected: ',selectedTaxon)
 
-    try {
-      // Cargar dummy.geojson de la carpeta public
-      const response = await fetch('/dummy.geojson');
-      if (!response.ok) {
-        throw new Error('No se pudo cargar dummy.geojson');
-      }
-      const geojsonData = await response.json();
+    //mapRef.current.addGeoJSONLayer(geojsonData);
 
-      // Eliminar capa GeoJSON previa si existe
-      mapRef.current.removeGeoJSONLayer();
-
-      // Agregar capa GeoJSON al mapa
-      mapRef.current.addGeoJSONLayer(geojsonData);
-    } catch (error) {
-      console.error('Error cargando geojson:', error);
-      alert('Error cargando el archivo GeoJSON.');
+    if (selectedMetrics.richness) {
+      mapRef.current?.generateRichnessImageOverlay(geojsonData);
     }
-  };
-
-  /**
-   * const handleShowDummyGeoJSON = async () => {
-    if (!mapRef.current) return;
-
-    try {
-      const response = await fetch('/dummy.geojson');
-      if (!response.ok) throw new Error('No se pudo cargar dummy.geojson');
-      const geojson = await response.json();
-
-      // Limpia capas anteriores (si tienes esa función)
-      mapRef.current.removeAllLayers?.();
-
-      // Extrae puntos para cada capa
-      const features = geojson.features;
-
-      const richnessPoints: [number, number, number][] = [];
-      const occupancyPoints: [number, number, number][] = [];
-      const biotaPoints: [number, number, number][] = [];
-
-      for (const f of features) {
-        if (f.geometry.type !== 'Point') continue;
-        const [lng, lat] = f.geometry.coordinates;
-        richnessPoints.push([lat, lng, f.properties.Rel_Species_Richness]);
-        occupancyPoints.push([lat, lng, f.properties.Rel_Occupancy]);
-        biotaPoints.push([lat, lng, f.properties.Biota_Overlap]);
-      }
-
-      mapRef.current.addHeatmapLayer(richnessPoints, 'richness');
-      mapRef.current.addHeatmapLayer(occupancyPoints, 'occupancy');
-      mapRef.current.addHeatmapLayer(biotaPoints, 'biota');
-
-    } catch (error) {
-      console.error('Error cargando geojson:', error);
-      alert('Error cargando el archivo GeoJSON.');
+    if (selectedMetrics.biotaOverlap) {
+      mapRef.current?.generateBiotaImageOverlay(geojsonData);
     }
+    if (selectedMetrics.occupancy) {
+      mapRef.current?.generateOccupancyImageOverlay(geojsonData);
+    }
+
   };
-   */
 
   const handleClearResults = useCallback(() => {
     clearResult();
@@ -277,6 +252,10 @@ export default function Home() {
         setResolutionThreshold={setResolutionThreshold}
         className="w-1/4"
         onShowDummyGeoJSON={handleShowDummyGeoJSON}
+        selectedMetrics={selectedMetrics}
+        setSelectedMetrics={setSelectedMetrics}
+        selectedTaxon={selectedTaxon}
+        onTaxonChange={setSelectedTaxon}
       />
     </div>
   );

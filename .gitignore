@@ -1,6 +1,7 @@
 # Ignora node_modules
 node_modules/
 
+
 # Ignora logs de npm
 npm-debug.log*
 yarn-debug.log*

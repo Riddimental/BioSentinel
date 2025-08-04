@@ -4,9 +4,12 @@ import { useState } from 'react';
 import ModelSelector from './ModelSelector';
 import { AnalysisResponse } from '../types/api';
 
+
 interface ControlPanelProps {
   selectedModel: string;
+  selectedTaxon: string;
   onModelChange: (modelId: string) => void;
+  onTaxonChange: (taxon: string) => void;
   currentBounds: any;
   boundsInfo: string;
   resolutionThreshold: number;
@@ -19,11 +22,23 @@ interface ControlPanelProps {
   onClearResults?: () => void;
   className?: string;
   onShowDummyGeoJSON?: () => void;
+  selectedMetrics: {
+    biotaOverlap: boolean;
+    richness: boolean;
+    occupancy: boolean;
+  };
+  setSelectedMetrics: React.Dispatch<React.SetStateAction<{
+    biotaOverlap: boolean;
+    richness: boolean;
+    occupancy: boolean;
+  }>>;
 }
 
 export default function ControlPanel({
   selectedModel,
+  selectedTaxon,
   onModelChange,
+  onTaxonChange,
   currentBounds,
   boundsInfo,
   resolutionThreshold,
@@ -35,8 +50,18 @@ export default function ControlPanel({
   analysisError,
   onClearResults,
   className,
-  onShowDummyGeoJSON
+  onShowDummyGeoJSON,
+  setSelectedMetrics,
+  selectedMetrics
 }: ControlPanelProps) {
+
+  const [isLoadingDummy, setIsLoadingDummy] = useState(false);
+  const icons = {
+    mammals: '🐘',   
+    birds: '🦅',     
+    reptiles: '🦎',  
+    amphibians: '🐸' 
+  }
 
   return (
     <div className={`bg-white border-l border-gray-200 p-6 flex flex-col ${className || ''} max-h-[90vh] overflow-y-auto`}>
@@ -61,30 +86,135 @@ export default function ControlPanel({
 
       {/* Image Resolution (Optional Feature) */}
       <div className="mb-6">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Resolución de Imagen
-        </label>
-        <div className="flex items-center space-x-3">
-          <input
-            type="range"
-            min="10"
-            max="50"
-            step="5"
-            value={resolutionThreshold}
-            onChange={(e) => setResolutionThreshold(Number(e.target.value))}
-            className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
-          />
-          <span className="text-sm font-medium text-gray-700 min-w-[3rem]">
-            {resolutionThreshold}m
-          </span>
-        </div>
-        <p className="text-xs text-gray-500 mt-1">
-          Resolución de imagen para el análisis: Un valor más alto puede mejorar la precisión 
-          de los resultados, pero también reduce el tamaño del área que se puede analizar. 
-          Si seleccionas la resolución más alta (10m por píxel), 
-          el área de interés debe ser menor a aproximadamente 839 km².
-        </p>
+        {selectedModel === 'bs1.0' ? (
+          <>
+            {/* Selector de taxones con íconos */}
+            <div className="mb-4">
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Filtrar por Taxón</label>
+              <div className="flex justify-between gap-4">
+                {[
+                  { name: 'mammals', icon: (
+                    <span className="text-2xl">{icons.mammals}</span>
+                  ) },
+                  { name: 'birds', icon: (
+                    <span className="text-2xl">{icons.birds}</span>
+                  ) },
+                  { name: 'reptiles', icon: (
+                    <span className="text-2xl">{icons.reptiles}</span>
+                  ) },
+                  { name: 'amphibians', icon: (
+                    <span className="text-2xl">{icons.amphibians}</span>
+                  ) },
+                ].map((taxon, index) => (
+                  <label key={taxon.name} className="flex flex-col items-center cursor-pointer">
+                    <input
+                      type="radio"
+                      name="taxon"
+                      value={taxon.name}
+                      onChange={() => onTaxonChange(taxon.name)}
+                      className="sr-only"
+                      checked={selectedTaxon === taxon.name}
+                    />
+                    <div
+                      className={`p-2 rounded-full border-2 transition ${
+                        selectedTaxon === taxon.name
+                          ? 'bg-green-600 border-green-700 text-white'
+                          : 'bg-white border-gray-300 text-gray-500 hover:border-green-500'
+                      }`}
+                    >
+                      {taxon.icon}
+                    </div>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* Selector de métricas */}
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Métricas de Biodiversidad
+            </label>
+            <div className="flex flex-col space-y-3">
+              {['biotaOverlap', 'richness', 'occupancy'].map((metric) => (
+                <label
+                  key={metric}
+                  className="flex items-center space-x-3 cursor-pointer select-none"
+                >
+                  <input
+                    type="radio"
+                    name="biodiversityMetric"
+                    checked={selectedMetrics[metric]}
+                    onChange={() =>
+                      setSelectedMetrics({
+                        biotaOverlap: metric === 'biotaOverlap',
+                        richness: metric === 'richness',
+                        occupancy: metric === 'occupancy',
+                      })
+                    }
+                    className="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
+                  />
+                  <span className="text-sm text-gray-800 capitalize">
+                    {metric === 'biotaOverlap' ? 'Biota Overlap' : metric}
+                  </span>
+                </label>
+              ))}
+            </div>
+            <p className="text-xs text-gray-500 mt-2">
+              Selecciona las métricas que deseas visualizar.
+            </p>
+
+            {/* Botón Apply BS-1.0 */}
+            {onShowDummyGeoJSON && (
+              <button
+                onClick={onShowDummyGeoJSON}
+                disabled={isLoadingDummy}
+                className="mt-4 w-full bg-green-600 hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed text-white font-medium py-3 px-4 rounded-md transition-colors duration-200 flex items-center justify-center"
+              >
+                {isLoadingDummy ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Aplicando BS-1.0...
+                  </>
+                ) : (
+                  <>
+                    <svg className="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                    Apply BS-1.0
+                  </>
+                )}
+              </button>
+            )}
+          </>
+        ) : (
+          <>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Resolución de Imagen
+            </label>
+            <div className="flex items-center space-x-3">
+              <input
+                type="range"
+                min="10"
+                max="50"
+                step={5}
+                value={resolutionThreshold}
+                onChange={(e) => setResolutionThreshold(Number(e.target.value))}
+                className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+              />
+              <span className="text-sm font-medium text-gray-700 min-w-[3rem]">
+                {resolutionThreshold}m
+              </span>
+            </div>
+            <p className="text-xs text-gray-500 mt-1">
+              Resolución de imagen para el análisis: Un valor más alto puede mejorar la precisión 
+              de los resultados, pero también reduce el tamaño del área que se puede analizar. 
+              Si seleccionas la resolución más alta (10m por píxel), 
+              el área de interés debe ser menor a aproximadamente 839 km².
+            </p>
+          </>
+        )}
       </div>
+
+
 
       {/* Current View Info */}
       <div className="mb-6">
@@ -99,17 +229,6 @@ export default function ControlPanel({
           </div>
         )}
       </div>
-
-      {onShowDummyGeoJSON && (
-        <button
-          onClick={onShowDummyGeoJSON}
-          className="mt-4 w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-4 rounded-md transition-colors duration-200"
-        >
-          BS-1.0 Mammals
-        </button>
-      )}
-
-
 
       {/* Analyze Button */}
       <button
