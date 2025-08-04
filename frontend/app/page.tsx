@@ -31,6 +31,7 @@ export default function Home() {
   const [analyzedBounds, setAnalyzedBounds] = useState<any>(null);
   const [resolutionThreshold, setResolutionThreshold] = useState(50);
   
+  
   const mapRef = useRef<MapComponentRef>(null);
   const { analyze, isLoading, error: analysisError, result, clearResult } = useMapAnalysis();
 
@@ -109,6 +110,28 @@ export default function Home() {
       console.error('Analysis failed:', error);
     }
   }, [currentBounds, selectedModel, resolutionThreshold, analyze, clearResult]);
+
+  const handleShowDummyGeoJSON = async () => {
+    if (!mapRef.current) return;
+
+    try {
+      // Cargar dummy.geojson de la carpeta public
+      const response = await fetch('/dummy.geojson');
+      if (!response.ok) {
+        throw new Error('No se pudo cargar dummy.geojson');
+      }
+      const geojsonData = await response.json();
+
+      // Eliminar capa GeoJSON previa si existe
+      mapRef.current.removeGeoJSONLayer();
+
+      // Agregar capa GeoJSON al mapa
+      mapRef.current.addGeoJSONLayer(geojsonData);
+    } catch (error) {
+      console.error('Error cargando geojson:', error);
+      alert('Error cargando el archivo GeoJSON.');
+    }
+  };
 
   const handleClearResults = useCallback(() => {
     clearResult();
@@ -215,6 +238,7 @@ export default function Home() {
         resolutionThreshold={resolutionThreshold}
         setResolutionThreshold={setResolutionThreshold}
         className="w-1/4"
+        onShowDummyGeoJSON={handleShowDummyGeoJSON}
       />
     </div>
   );
