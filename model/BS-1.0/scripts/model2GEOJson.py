@@ -8,7 +8,7 @@ import pandas as pd
 import ee
 import geemap
 
-# Inicializa Google Earth Engine
+# Inicializa Google Earth Engine con tu proyecto
 ee.Initialize(project='biosentinel-uv')
 
 # Configuración general
