@@ -105,7 +105,7 @@ export default function ControlPanel({
           onClick={onShowDummyGeoJSON}
           className="mt-4 w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-4 rounded-md transition-colors duration-200"
         >
-          Mostrar GeoJSON de Prueba
+          BS-1.0 Mammals
         </button>
       )}
 

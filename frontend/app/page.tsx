@@ -133,6 +133,44 @@ export default function Home() {
     }
   };
 
+  /**
+   * const handleShowDummyGeoJSON = async () => {
+    if (!mapRef.current) return;
+
+    try {
+      const response = await fetch('/dummy.geojson');
+      if (!response.ok) throw new Error('No se pudo cargar dummy.geojson');
+      const geojson = await response.json();
+
+      // Limpia capas anteriores (si tienes esa función)
+      mapRef.current.removeAllLayers?.();
+
+      // Extrae puntos para cada capa
+      const features = geojson.features;
+
+      const richnessPoints: [number, number, number][] = [];
+      const occupancyPoints: [number, number, number][] = [];
+      const biotaPoints: [number, number, number][] = [];
+
+      for (const f of features) {
+        if (f.geometry.type !== 'Point') continue;
+        const [lng, lat] = f.geometry.coordinates;
+        richnessPoints.push([lat, lng, f.properties.Rel_Species_Richness]);
+        occupancyPoints.push([lat, lng, f.properties.Rel_Occupancy]);
+        biotaPoints.push([lat, lng, f.properties.Biota_Overlap]);
+      }
+
+      mapRef.current.addHeatmapLayer(richnessPoints, 'richness');
+      mapRef.current.addHeatmapLayer(occupancyPoints, 'occupancy');
+      mapRef.current.addHeatmapLayer(biotaPoints, 'biota');
+
+    } catch (error) {
+      console.error('Error cargando geojson:', error);
+      alert('Error cargando el archivo GeoJSON.');
+    }
+  };
+   */
+
   const handleClearResults = useCallback(() => {
     clearResult();
     setShowLegend(false);

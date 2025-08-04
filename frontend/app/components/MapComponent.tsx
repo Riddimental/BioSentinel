@@ -3,6 +3,8 @@
 import { useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
 import { MapComponentProps } from '../types/api';
 import { getInitialMapView, getCurrentLocation, getLocationZoom } from '../utils/mapUtils';
+import 'leaflet.heat';
+
 
 // Dynamic import for Leaflet to avoid SSR issues
 let L: any = null;
@@ -23,7 +25,13 @@ export interface MapComponentRef {
   getBounds: () => any;
   addImageOverlay: (imageUrl: string, bounds: any) => void;
   removeImageOverlay: () => void;
+  addHeatmapLayer: (data: [number, number, number][], label: string) => void;
+  removeHeatmapLayer: (label: string) => void;
+  removeAllHeatmapLayers: () => void;
+  addGeoJSONLayer: (geojsonData: GeoJSON.GeoJsonObject) => void;
+  removeGeoJSONLayer: () => void;
 }
+
 
 const MapComponent = forwardRef<MapComponentRef, MapComponentProps>(({ 
   onBoundsChange, 
@@ -33,12 +41,44 @@ const MapComponent = forwardRef<MapComponentRef, MapComponentProps>(({
   const mapInstance = useRef<L.Map | null>(null);
   const imageOverlay = useRef<L.ImageOverlay | null>(null);
   const geoJsonLayer = useRef<L.GeoJSON | null>(null);
+  const layersRef = useRef<{ label: string; layer: any }[]>([]);
 
 
   useImperativeHandle(ref, () => ({
       getMap: () => mapInstance.current,
       getBounds: () => mapInstance.current?.getBounds() || null,
-      
+
+      addHeatmapLayer: (data: [number, number, number][], label: string) => {
+        if (!mapInstance.current) return;
+
+        const heatLayer = (L as any).heatLayer(data, {
+          radius: 20,
+          blur: 15,
+          maxZoom: 17,
+        }).addTo(mapInstance.current);
+
+        layersRef.current.push({ label, layer: heatLayer });
+      },
+
+      removeHeatmapLayer: (label: string) => {
+        if (!mapInstance.current) return;
+
+        const index = layersRef.current.findIndex(l => l.label === label);
+        if (index !== -1) {
+          mapInstance.current.removeLayer(layersRef.current[index].layer);
+          layersRef.current.splice(index, 1);
+        }
+      },
+
+      removeAllHeatmapLayers: () => {
+        if (!mapInstance.current) return;
+
+        layersRef.current.forEach(({ layer }) => {
+          mapInstance.current.removeLayer(layer);
+        });
+        layersRef.current = [];
+      },
+
       addImageOverlay: (imageUrl: string, bounds: L.LatLngBounds) => {
         if (!mapInstance.current) return;
 
