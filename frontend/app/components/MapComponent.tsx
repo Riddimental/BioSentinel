@@ -32,85 +32,52 @@ const MapComponent = forwardRef<MapComponentRef, MapComponentProps>(({
   const mapContainer = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<L.Map | null>(null);
   const imageOverlay = useRef<L.ImageOverlay | null>(null);
-  const geoJsonLayer = useRef<L.GeoJSON | null>(null);
-
 
   useImperativeHandle(ref, () => ({
     getMap: () => mapInstance.current,
     getBounds: () => mapInstance.current?.getBounds() || null,
-    
     addImageOverlay: (imageUrl: string, bounds: L.LatLngBounds) => {
       if (!mapInstance.current) return;
-
+      
+      // Remove existing overlay
       if (imageOverlay.current) {
         mapInstance.current.removeLayer(imageOverlay.current);
       }
-
+      
+      console.log('Adding image overlay:', { 
+        imageType: imageUrl.startsWith('data:image/png') ? 'PNG' : 'SVG',
+        imageSize: imageUrl.length,
+        bounds 
+      });
+      
+      // Add new overlay with proper error handling for PNG/SVG data URLs
       imageOverlay.current = L.imageOverlay(imageUrl, bounds, {
         opacity: 0.7,
         interactive: false,
         className: 'biodiversity-overlay'
       });
-
+      
+      // Error handling for overlay loading
       imageOverlay.current.on('error', (e) => {
         console.error('Image overlay failed to load:', e);
+        console.error('Image URL:', imageUrl.substring(0, 100));
       });
-
+      
       imageOverlay.current.on('load', () => {
         console.log('Image overlay loaded successfully');
       });
-
+      
+      console.log('Adding overlay to map...');
       imageOverlay.current.addTo(mapInstance.current);
+      console.log('Overlay added to map');
     },
-
     removeImageOverlay: () => {
       if (imageOverlay.current && mapInstance.current) {
         mapInstance.current.removeLayer(imageOverlay.current);
         imageOverlay.current = null;
       }
-    },
-    addGeoJSONLayer: (geojsonData: GeoJSON.GeoJsonObject) => {
-        if (!mapInstance.current) return;
-
-        // Limpiar geojson previo
-        if (geoJsonLayer.current) {
-          mapInstance.current.removeLayer(geoJsonLayer.current);
-        }
-
-        // Crear nuevo geojson layer
-        geoJsonLayer.current = L.geoJSON(geojsonData, {
-          style: {
-            color: 'red',
-            weight: 2,
-            opacity: 0.8,
-            fillOpacity: 0.3,
-          },
-          onEachFeature: (feature, layer) => {
-            if (feature.properties?.name) {
-              layer.bindPopup(feature.properties.name);
-            }
-          }
-        }).addTo(mapInstance.current);
-
-        // Zoom automático a los bounds del GeoJSON
-        try {
-          const bounds = geoJsonLayer.current.getBounds();
-          if (bounds.isValid()) {
-            mapInstance.current.fitBounds(bounds);
-          }
-        } catch (e) {
-          console.warn('No bounds available for GeoJSON');
-        }
-      },
-
-    removeGeoJSONLayer: () => {
-        if (geoJsonLayer.current && mapInstance.current) {
-          mapInstance.current.removeLayer(geoJsonLayer.current);
-          geoJsonLayer.current = null;
-        }
-      }
-    }));
-
+    }
+  }));
 
   useEffect(() => {
     if (!mapContainer.current || mapInstance.current || !L) return;

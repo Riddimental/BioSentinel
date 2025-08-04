@@ -18,14 +18,12 @@ interface ControlPanelProps {
   analysisError?: string | null;
   onClearResults?: () => void;
   className?: string;
-  onShowDummyGeoJSON?: () => void;
 }
 
 export default function ControlPanel({
   selectedModel,
   onModelChange,
   currentBounds,
-  onShowDummyGeoJSON,
   boundsInfo,
   resolutionThreshold,
   setResolutionThreshold,
@@ -120,16 +118,6 @@ export default function ControlPanel({
           </>
         )}
       </button>
-
-      {onShowDummyGeoJSON && (
-        <button
-          onClick={onShowDummyGeoJSON}
-          className="mt-4 w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-4 rounded-md transition-colors duration-200"
-        >
-          Mostrar GeoJSON de Prueba
-        </button>
-      )}
-
 
       {/* Validation Error */}
       {validationError && (

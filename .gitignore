@@ -1,0 +1,13 @@
+# Ignora node_modules
+node_modules/
+
+# Ignora logs de npm
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Ignora directorios temporales
+.DS_Store
+.env
+.next/
+out/

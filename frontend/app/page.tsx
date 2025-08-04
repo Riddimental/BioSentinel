@@ -137,29 +137,6 @@ export default function Home() {
     }
   }, [result, analyzedBounds]);
 
-  // Nueva función para cargar dummy.geojson y mostrar en mapa
-  const handleShowDummyGeoJSON = async () => {
-    if (!mapRef.current) return;
-
-    try {
-      // Cargar dummy.geojson de la carpeta public
-      const response = await fetch('/dummy.geojson');
-      if (!response.ok) {
-        throw new Error('No se pudo cargar dummy.geojson');
-      }
-      const geojsonData = await response.json();
-
-      // Eliminar capa GeoJSON previa si existe
-      mapRef.current.removeGeoJSONLayer();
-
-      // Agregar capa GeoJSON al mapa
-      mapRef.current.addGeoJSONLayer(geojsonData);
-    } catch (error) {
-      console.error('Error cargando geojson:', error);
-      alert('Error cargando el archivo GeoJSON.');
-    }
-  };
-
   return (
     <div className="h-screen flex">
       {/* Map Area - 75% width */}
@@ -237,7 +214,6 @@ export default function Home() {
         onClearResults={handleClearResults}
         resolutionThreshold={resolutionThreshold}
         setResolutionThreshold={setResolutionThreshold}
-        onShowDummyGeoJSON={handleShowDummyGeoJSON}
         className="w-1/4"
       />
     </div>
