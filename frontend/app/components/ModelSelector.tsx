@@ -20,24 +20,24 @@ const models: Model[] = [
     description: 'Modelo de segmentación generalista desarrollado por Meta AI que genera máscaras precisas de regiones segmentadas a partir de una imagen y un "prompt". Entrenado con un dataset masivo (SA-1B) y es ideal para segmentación interactiva.',
     category: 'segmentation'
   },
-  {
-    id: 'clipseg',
-    name: 'CLIPSeg',
-    description: 'Modelo de segmentación basado en texto que permite segmentar imágenes usando lenguaje natural como prompt. Combina un fine-tuning de CLIP con un decoder ligero, ideal para usuarios no técnicos.',
-    category: 'segmentation'
-  },
-  {
-    id: 'sam-clipseg',
-    name: 'Combinación SAM + CLIPSeg',
-    description: 'Arquitectura que aprovecha CLIPSeg para generar máscaras iniciales por clase a partir de prompts textuales, refinadas con SAM para mejorar la precisión de los bordes. Combina clasificación textual con alta precisión geométrica.',
-    category: 'segmentation'
-  },
-  {
-    id: 'gpt4o-mini',
-    name: 'GPT-4o - mini',
-    description: 'Modelo multimodal nativo de OpenAI que puede razonar sobre texto, imagen, audio y video. Interpreta imágenes como RGB y está entrenado para análisis de imágenes, segmentación visual cualitativa, OCR e interpretación geográfica.',
-    category: 'multimodal'
-  },
+  // {
+  //   id: 'clipseg',
+  //   name: 'CLIPSeg',
+  //   description: 'Modelo de segmentación basado en texto que permite segmentar imágenes usando lenguaje natural como prompt. Combina un fine-tuning de CLIP con un decoder ligero, ideal para usuarios no técnicos.',
+  //   category: 'segmentation'
+  // },
+  // {
+  //   id: 'sam-clipseg',
+  //   name: 'Combinación SAM + CLIPSeg',
+  //   description: 'Arquitectura que aprovecha CLIPSeg para generar máscaras iniciales por clase a partir de prompts textuales, refinadas con SAM para mejorar la precisión de los bordes. Combina clasificación textual con alta precisión geométrica.',
+  //   category: 'segmentation'
+  // },
+  // {
+  //   id: 'gpt4o-mini',
+  //   name: 'GPT-4o - mini',
+  //   description: 'Modelo multimodal nativo de OpenAI que puede razonar sobre texto, imagen, audio y video. Interpreta imágenes como RGB y está entrenado para análisis de imágenes, segmentación visual cualitativa, OCR e interpretación geográfica.',
+  //   category: 'multimodal'
+  // },
   {
     id: 'k-means',
     name: 'Clustering con K-Means',
@@ -49,7 +49,13 @@ const models: Model[] = [
     name: 'MKANet (Multiscale Kernel Attention Network)',
     description: 'Red neuronal convolucional ligera diseñada para segmentación semántica de imágenes remotas. Utiliza atención espacial y de canal para mejorar la detección de objetos en imágenes multiespectrales.',
     category: 'cnn'
-  }
+  },
+  {
+    id: 'bs1.0-birds',
+    name: 'BS1.0-birds',
+    description: 'BioSentinel 1.0 es un modelo especializado en detección de aves, entrenado con imágenes de satélite y datos de campo. Utiliza el algoritmo de Random Forest.',
+    category: 'cnn'
+  },
 ];
 
 interface ModelSelectorProps {
