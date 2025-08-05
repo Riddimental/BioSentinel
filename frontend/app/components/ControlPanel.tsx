@@ -68,7 +68,7 @@ export default function ControlPanel({
       </div>
 
       {/* Image Resolution (Optional Feature) */}
-      <div className="mb-6">
+      {selectedModel != 'bs1.0' && (<div className="mb-6">
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Resolución de Imagen
         </label>
@@ -92,7 +92,7 @@ export default function ControlPanel({
           Si seleccionas la resolución más alta (10m por píxel), 
           el área de interés debe ser menor a aproximadamente 839 km².
         </p>
-      </div>
+      </div>)}
 
       {/* Current View Info */}
       <div className="mb-6">

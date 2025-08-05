@@ -197,6 +197,7 @@ export default function Home() {
         } else if (activeMetric === 'occupancy') {
           mapRef.current.generateOccupancyImageOverlay(geojsonData);
         }
+        setShowLegend(true);
       }
     } catch (error) {
       console.error('Biodiversity analysis failed:', error);
@@ -266,17 +267,48 @@ export default function Home() {
         </div>
         
         {/* Legend Overlay */}
-        {showLegend && result && (
+        {showLegend && (result || selectedModel === 'bs1.0') && (
           <div className="absolute bottom-4 left-4 z-[1000]">
-            <Legend
-              analysisResult={result}
-              onClose={() => setShowLegend(false)}
-            />
+            {selectedModel === 'bs1.0' ? (
+              <div className="bg-white rounded-lg shadow-lg border border-gray-200 max-w-xs">
+                <div className="flex items-center justify-between p-3 border-b border-gray-200">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-3 h-3 bg-gradient-to-r from-red-500 to-blue-500 rounded"></div>
+                    <h3 className="text-sm font-semibold text-gray-900">Biodiversidad</h3>
+                  </div>
+                  <button
+                    onClick={() => setShowLegend(false)}
+                    className="p-1 hover:bg-gray-100 rounded transition-colors"
+                  >
+                    <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                <div className="p-3">
+                  <div className="space-y-2">
+                    <div className="flex items-center">
+                      <div className="w-4 h-4 rounded border border-gray-300 mr-2" style={{ backgroundColor: '#FF0000' }}></div>
+                      <span className="text-xs text-gray-700">Rojo = Mayor concentración</span>
+                    </div>
+                    <div className="flex items-center">
+                      <div className="w-4 h-4 rounded border border-gray-300 mr-2" style={{ backgroundColor: '#0000FF' }}></div>
+                      <span className="text-xs text-gray-700">Azul = Menor concentración</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : result && (
+              <Legend
+                analysisResult={result}
+                onClose={() => setShowLegend(false)}
+              />
+            )}
           </div>
         )}
         
         {/* Legend Toggle Button (when legend is hidden but results exist) */}
-        {!showLegend && result && (
+        {!showLegend && (result || (selectedModel === 'bs1.0')) && (
           <div className="absolute bottom-4 left-4 z-[1000]">
             <button
               onClick={() => setShowLegend(true)}
@@ -284,7 +316,7 @@ export default function Home() {
               title="Mostrar leyenda"
             >
               <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-gradient-to-r from-green-400 to-blue-500 rounded"></div>
+                <div className={`w-3 h-3 rounded ${selectedModel === 'bs1.0' ? 'bg-gradient-to-r from-red-500 to-blue-500' : 'bg-gradient-to-r from-green-400 to-blue-500'}`}></div>
                 <span className="text-sm font-medium text-gray-700">Leyenda</span>
                 <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 11l3-3m0 0l3 3m-3-3v8" />
