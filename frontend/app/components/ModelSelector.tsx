@@ -55,9 +55,7 @@ const models: Model[] = [
     name: 'BS1.0',
     description: 'BS-1.0 es un modelo enfocado en la detección de diversidad biológica. Estima métricas como riqueza (richness), ocupación (occupancy) y solapamiento de biota (biota overlap) para distintos grupos taxonómicos, incluyendo aves, mamíferos, reptiles y anfibios, a partir de imágenes satelitales y datos de campo. Está basado en el algoritmo Random Forest.',
     category: 'tree-based'
-  }
-
-,
+  },
 ];
 
 interface ModelSelectorProps {

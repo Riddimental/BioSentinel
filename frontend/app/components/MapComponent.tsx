@@ -56,7 +56,7 @@ const MapComponent = forwardRef<MapComponentRef, MapComponentProps>(({
             const val = f.properties?.Rel_Occupancy;
             return (lat && lng && typeof val === 'number') ? { lat, lng, value: val } : null;
           })
-          .filter(Boolean) as any[];
+          .filter((p: any) => p !== null) as any[];
 
         if (points.length === 0) {
           console.warn('No valid occupancy points found.');
@@ -144,7 +144,7 @@ const MapComponent = forwardRef<MapComponentRef, MapComponentProps>(({
             const val = f.properties?.Biota_Overlap;
             return (lat && lng && typeof val === 'number') ? { lat, lng, value: val } : null;
           })
-          .filter(Boolean) as any[];
+          .filter((p: any) => p !== null) as any[];
 
         if (points.length === 0) {
           console.warn('No valid biota overlap points found.');
@@ -233,7 +233,7 @@ const MapComponent = forwardRef<MapComponentRef, MapComponentProps>(({
             const val = f.properties?.Rel_Species_Richness;
             return (lat && lng && typeof val === 'number') ? { lat, lng, value: val } : null;
           })
-          .filter(Boolean) as any[];
+          .filter((p: any) => p !== null) as any[];
 
         if (points.length === 0) {
           console.warn('No valid richness points found.');

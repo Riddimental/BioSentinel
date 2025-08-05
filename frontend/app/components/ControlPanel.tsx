@@ -4,12 +4,9 @@ import { useState } from 'react';
 import ModelSelector from './ModelSelector';
 import { AnalysisResponse } from '../types/api';
 
-
 interface ControlPanelProps {
   selectedModel: string;
-  selectedTaxon: string;
   onModelChange: (modelId: string) => void;
-  onTaxonChange: (taxon: string) => void;
   currentBounds: any;
   boundsInfo: string;
   resolutionThreshold: number;
@@ -22,23 +19,15 @@ interface ControlPanelProps {
   onClearResults?: () => void;
   className?: string;
   onShowDummyGeoJSON?: () => void;
-  selectedMetrics: {
-    biotaOverlap: boolean;
-    richness: boolean;
-    occupancy: boolean;
-  };
-  setSelectedMetrics: React.Dispatch<React.SetStateAction<{
-    biotaOverlap: boolean;
-    richness: boolean;
-    occupancy: boolean;
-  }>>;
+  selectedMetrics?: any;
+  setSelectedMetrics?: (metrics: any) => void;
+  selectedTaxon?: string;
+  onTaxonChange?: (taxon: string) => void;
 }
 
 export default function ControlPanel({
   selectedModel,
-  selectedTaxon,
   onModelChange,
-  onTaxonChange,
   currentBounds,
   boundsInfo,
   resolutionThreshold,
@@ -51,17 +40,11 @@ export default function ControlPanel({
   onClearResults,
   className,
   onShowDummyGeoJSON,
+  selectedMetrics,
   setSelectedMetrics,
-  selectedMetrics
+  selectedTaxon,
+  onTaxonChange
 }: ControlPanelProps) {
-
-  const [isLoadingDummy, setIsLoadingDummy] = useState(false);
-  const icons = {
-    mammals: '🐘',   
-    birds: '🦅',     
-    reptiles: '🦎',  
-    amphibians: '🐸' 
-  }
 
   return (
     <div className={`bg-white border-l border-gray-200 p-6 flex flex-col ${className || ''} max-h-[90vh] overflow-y-auto`}>
@@ -86,135 +69,30 @@ export default function ControlPanel({
 
       {/* Image Resolution (Optional Feature) */}
       <div className="mb-6">
-        {selectedModel === 'bs1.0' ? (
-          <>
-            {/* Selector de taxones con íconos */}
-            <div className="mb-4">
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Filtrar por Taxón</label>
-              <div className="flex justify-between gap-4">
-                {[
-                  { name: 'mammals', icon: (
-                    <span className="text-2xl">{icons.mammals}</span>
-                  ) },
-                  { name: 'birds', icon: (
-                    <span className="text-2xl">{icons.birds}</span>
-                  ) },
-                  { name: 'reptiles', icon: (
-                    <span className="text-2xl">{icons.reptiles}</span>
-                  ) },
-                  { name: 'amphibians', icon: (
-                    <span className="text-2xl">{icons.amphibians}</span>
-                  ) },
-                ].map((taxon, index) => (
-                  <label key={taxon.name} className="flex flex-col items-center cursor-pointer">
-                    <input
-                      type="radio"
-                      name="taxon"
-                      value={taxon.name}
-                      onChange={() => onTaxonChange(taxon.name)}
-                      className="sr-only"
-                      checked={selectedTaxon === taxon.name}
-                    />
-                    <div
-                      className={`p-2 rounded-full border-2 transition ${
-                        selectedTaxon === taxon.name
-                          ? 'bg-green-600 border-green-700 text-white'
-                          : 'bg-white border-gray-300 text-gray-500 hover:border-green-500'
-                      }`}
-                    >
-                      {taxon.icon}
-                    </div>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            {/* Selector de métricas */}
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Métricas de Biodiversidad
-            </label>
-            <div className="flex flex-col space-y-3">
-              {['biotaOverlap', 'richness', 'occupancy'].map((metric) => (
-                <label
-                  key={metric}
-                  className="flex items-center space-x-3 cursor-pointer select-none"
-                >
-                  <input
-                    type="radio"
-                    name="biodiversityMetric"
-                    checked={selectedMetrics[metric]}
-                    onChange={() =>
-                      setSelectedMetrics({
-                        biotaOverlap: metric === 'biotaOverlap',
-                        richness: metric === 'richness',
-                        occupancy: metric === 'occupancy',
-                      })
-                    }
-                    className="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
-                  />
-                  <span className="text-sm text-gray-800 capitalize">
-                    {metric === 'biotaOverlap' ? 'Biota Overlap' : metric}
-                  </span>
-                </label>
-              ))}
-            </div>
-            <p className="text-xs text-gray-500 mt-2">
-              Selecciona las métricas que deseas visualizar.
-            </p>
-
-            {/* Botón Apply BS-1.0 */}
-            {onShowDummyGeoJSON && (
-              <button
-                onClick={onShowDummyGeoJSON}
-                disabled={isLoadingDummy}
-                className="mt-4 w-full bg-green-600 hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed text-white font-medium py-3 px-4 rounded-md transition-colors duration-200 flex items-center justify-center"
-              >
-                {isLoadingDummy ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Aplicando BS-1.0...
-                  </>
-                ) : (
-                  <>
-                    <svg className="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                    </svg>
-                    Apply BS-1.0
-                  </>
-                )}
-              </button>
-            )}
-          </>
-        ) : (
-          <>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Resolución de Imagen
-            </label>
-            <div className="flex items-center space-x-3">
-              <input
-                type="range"
-                min="10"
-                max="50"
-                step={5}
-                value={resolutionThreshold}
-                onChange={(e) => setResolutionThreshold(Number(e.target.value))}
-                className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
-              />
-              <span className="text-sm font-medium text-gray-700 min-w-[3rem]">
-                {resolutionThreshold}m
-              </span>
-            </div>
-            <p className="text-xs text-gray-500 mt-1">
-              Resolución de imagen para el análisis: Un valor más alto puede mejorar la precisión 
-              de los resultados, pero también reduce el tamaño del área que se puede analizar. 
-              Si seleccionas la resolución más alta (10m por píxel), 
-              el área de interés debe ser menor a aproximadamente 839 km².
-            </p>
-          </>
-        )}
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Resolución de Imagen
+        </label>
+        <div className="flex items-center space-x-3">
+          <input
+            type="range"
+            min="10"
+            max="50"
+            step="5"
+            value={resolutionThreshold}
+            onChange={(e) => setResolutionThreshold(Number(e.target.value))}
+            className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+          />
+          <span className="text-sm font-medium text-gray-700 min-w-[3rem]">
+            {resolutionThreshold}m
+          </span>
+        </div>
+        <p className="text-xs text-gray-500 mt-1">
+          Resolución de imagen para el análisis: Un valor más alto puede mejorar la precisión 
+          de los resultados, pero también reduce el tamaño del área que se puede analizar. 
+          Si seleccionas la resolución más alta (10m por píxel), 
+          el área de interés debe ser menor a aproximadamente 839 km².
+        </p>
       </div>
-
-
 
       {/* Current View Info */}
       <div className="mb-6">
@@ -230,11 +108,66 @@ export default function ControlPanel({
         )}
       </div>
 
+      {/* BS1.0 Controls */}
+      {selectedModel === 'bs1.0' && (
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Taxón
+          </label>
+          <select 
+            value={selectedTaxon}
+            onChange={(e) => onTaxonChange?.(e.target.value)}
+            className="w-full px-3 py-2 text-gray-900 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white mb-4"
+          >
+            <option value="mammals">Mamíferos</option>
+            <option value="birds">Aves</option>
+            <option value="reptiles">Reptiles</option>
+            <option value="amphibians">Anfibios</option>
+          </select>
+          
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Métrica
+          </label>
+          <div className="space-y-2">
+            <label className="flex items-center">
+              <input
+                type="radio"
+                name="metric"
+                checked={selectedMetrics?.richness}
+                onChange={() => setSelectedMetrics?.({richness: true, biotaOverlap: false, occupancy: false})}
+                className="mr-2"
+              />
+              <span className="text-sm">Riqueza de especies</span>
+            </label>
+            <label className="flex items-center">
+              <input
+                type="radio"
+                name="metric"
+                checked={selectedMetrics?.biotaOverlap}
+                onChange={() => setSelectedMetrics?.({richness: false, biotaOverlap: true, occupancy: false})}
+                className="mr-2"
+              />
+              <span className="text-sm">Solapamiento de biota</span>
+            </label>
+            <label className="flex items-center">
+              <input
+                type="radio"
+                name="metric"
+                checked={selectedMetrics?.occupancy}
+                onChange={() => setSelectedMetrics?.({richness: false, biotaOverlap: false, occupancy: true})}
+                className="mr-2"
+              />
+              <span className="text-sm">Ocupación relativa</span>
+            </label>
+          </div>
+        </div>
+      )}
+
       {/* Analyze Button */}
       <button
-        disabled={isLoading || !currentBounds || !!validationError}
-        className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed text-white font-medium py-3 px-4 rounded-md transition-colors duration-200 flex items-center justify-center"
-        onClick={onAnalyze}
+        disabled={isLoading || (selectedModel !== 'bs1.0' && (!currentBounds || !!validationError))}
+        className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed text-white font-medium py-3 px-4 rounded-md transition-colors duration-200 flex items-center justify-center mb-4"
+        onClick={selectedModel === 'bs1.0' ? onShowDummyGeoJSON : onAnalyze}
       >
         {isLoading ? (
           <>
@@ -246,7 +179,7 @@ export default function ControlPanel({
             <svg className="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
             </svg>
-            Analizar Vista Actual
+            {selectedModel === 'bs1.0' ? 'Analizar Biodiversidad' : 'Analizar Vista Actual'}
           </>
         )}
       </button>

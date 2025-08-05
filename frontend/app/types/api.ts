@@ -6,6 +6,20 @@ export interface AnalysisRequest {
   resolution?: number;
 }
 
+export interface BiodiversityRequest {
+  model: string;
+  taxon: 'birds' | 'mammals' | 'reptiles' | 'amphibians';
+  metric: 'overlap' | 'richness' | 'occupancy';
+  longitude: number;
+  latitude: number;
+}
+
+export interface BiodiversityResponse {
+  success: boolean;
+  geojson: GeoJSON.FeatureCollection;
+  error?: string;
+}
+
 export interface ClassificationResult {
   name: string;
   color: string;
