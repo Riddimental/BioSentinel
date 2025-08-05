@@ -36,6 +36,7 @@ export default function Home() {
     richness: true,
     occupancy: false,
   });
+  const [isBiodiversityLoading, setIsBiodiversityLoading] = useState(false);
 
   
   
@@ -163,6 +164,7 @@ export default function Home() {
     };
     
     console.log('Sending request:', requestBody);
+    setIsBiodiversityLoading(true);
     
     try {
       const response = await fetch('http://127.0.0.1:8000/classify_image/', {
@@ -198,6 +200,8 @@ export default function Home() {
       }
     } catch (error) {
       console.error('Biodiversity analysis failed:', error);
+    } finally {
+      setIsBiodiversityLoading(false);
     }
   };
 
@@ -298,7 +302,7 @@ export default function Home() {
         currentBounds={currentBounds}
         boundsInfo={boundsInfo}
         validationError={validationError}
-        isLoading={isLoading}
+        isLoading={isLoading || isBiodiversityLoading}
         onAnalyze={handleAnalyze}
         analysisResult={result}
         analysisError={analysisError}
