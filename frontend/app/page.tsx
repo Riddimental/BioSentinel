@@ -9,6 +9,79 @@ import ControlPanel from './components/ControlPanel';
 import Legend from './components/Legend';
 import { useMapAnalysis } from './hooks/useMapAnalysis';
 
+// Biodiversity Legend Component
+function BiodiversityLegend({ biodiversityData, onClose }: { biodiversityData: any, onClose: () => void }) {
+  if (!biodiversityData) {
+    return (
+      <div className="bg-white rounded-lg shadow-lg border border-gray-200 max-w-xs">
+        <div className="flex items-center justify-between p-3 border-b border-gray-200">
+          <div className="flex items-center space-x-2">
+            <div className="w-3 h-3 bg-gradient-to-r from-red-500 to-blue-500 rounded"></div>
+            <h3 className="text-sm font-semibold text-gray-900">Biodiversidad</h3>
+          </div>
+          <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded transition-colors">
+            <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div className="p-3">
+          <div className="space-y-2">
+            <div className="flex items-center">
+              <div className="w-4 h-4 rounded border border-gray-300 mr-2" style={{ backgroundColor: '#FF0000' }}></div>
+              <span className="text-xs text-gray-700">Rojo = Mayor concentración</span>
+            </div>
+            <div className="flex items-center">
+              <div className="w-4 h-4 rounded border border-gray-300 mr-2" style={{ backgroundColor: '#0000FF' }}></div>
+              <span className="text-xs text-gray-700">Azul = Menor concentración</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const { geojsonData, activeMetric } = biodiversityData;
+  const metricMap = {
+    richness: 'Rel_Species_Richness',
+    biotaOverlap: 'Biota_Overlap',
+    occupancy: 'Rel_Occupancy'
+  };
+  
+  const metricKey = metricMap[activeMetric as keyof typeof metricMap];
+  const values = geojsonData.features.map((f: any) => f.properties?.[metricKey]).filter((v: any) => typeof v === 'number');
+  const minValue = Math.min(...values);
+  const maxValue = Math.max(...values);
+
+  return (
+    <div className="bg-white rounded-lg shadow-lg border border-gray-200 max-w-xs">
+      <div className="flex items-center justify-between p-3 border-b border-gray-200">
+        <div className="flex items-center space-x-2">
+          <div className="w-3 h-3 bg-gradient-to-r from-blue-500 to-red-500 rounded"></div>
+          <h3 className="text-sm font-semibold text-gray-900">Biodiversidad</h3>
+        </div>
+        <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded transition-colors">
+          <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <div className="p-3">
+        <div className="mb-2">
+          <span className="text-xs font-medium text-gray-700">{metricKey}</span>
+        </div>
+        <div className="relative">
+          <div className="h-4 w-full bg-gradient-to-r from-blue-500 to-red-500 rounded border border-gray-300"></div>
+          <div className="flex justify-between mt-1 text-xs text-gray-600">
+            <span>{minValue.toFixed(3)}</span>
+            <span>{maxValue.toFixed(3)}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // Dynamically import MapComponent to avoid SSR issues
 const MapComponent = dynamic(() => import('./components/MapComponent'), {
   ssr: false,
@@ -37,6 +110,7 @@ export default function Home() {
     occupancy: false,
   });
   const [isBiodiversityLoading, setIsBiodiversityLoading] = useState(false);
+  const [biodiversityData, setBiodiversityData] = useState<any>(null);
 
   
   
@@ -194,6 +268,9 @@ export default function Home() {
         // Parse GeoJSON string to object if needed
         const geojsonData = typeof data.geojson === 'string' ? JSON.parse(data.geojson) : data.geojson;
         
+        // Store biodiversity data for legend
+        setBiodiversityData({ geojsonData, activeMetric });
+        
         if (activeMetric === 'richness') {
           mapRef.current.generateRichnessImageOverlay(geojsonData);
         } else if (activeMetric === 'biotaOverlap') {
@@ -214,6 +291,7 @@ export default function Home() {
     clearResult();
     setShowLegend(false);
     setAnalyzedBounds(null);
+    setBiodiversityData(null);
     const mapInstance = mapRef.current;
     if (mapInstance) {
       mapInstance.removeImageOverlay();
@@ -272,36 +350,12 @@ export default function Home() {
         
         {/* Legend Overlay */}
         {showLegend && (result || selectedModel === 'bs1.0') && (
-          <div className="absolute bottom-4 left-4 z-[1000]">
+          <div className={`absolute z-[1000] ${selectedModel === 'bs1.0' ? 'top-4 left-4' : 'bottom-4 left-4'}`}>
             {selectedModel === 'bs1.0' ? (
-              <div className="bg-white rounded-lg shadow-lg border border-gray-200 max-w-xs">
-                <div className="flex items-center justify-between p-3 border-b border-gray-200">
-                  <div className="flex items-center space-x-2">
-                    <div className="w-3 h-3 bg-gradient-to-r from-red-500 to-blue-500 rounded"></div>
-                    <h3 className="text-sm font-semibold text-gray-900">Biodiversidad</h3>
-                  </div>
-                  <button
-                    onClick={() => setShowLegend(false)}
-                    className="p-1 hover:bg-gray-100 rounded transition-colors"
-                  >
-                    <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-                <div className="p-3">
-                  <div className="space-y-2">
-                    <div className="flex items-center">
-                      <div className="w-4 h-4 rounded border border-gray-300 mr-2" style={{ backgroundColor: '#FF0000' }}></div>
-                      <span className="text-xs text-gray-700">Rojo = Mayor concentración</span>
-                    </div>
-                    <div className="flex items-center">
-                      <div className="w-4 h-4 rounded border border-gray-300 mr-2" style={{ backgroundColor: '#0000FF' }}></div>
-                      <span className="text-xs text-gray-700">Azul = Menor concentración</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <BiodiversityLegend 
+                biodiversityData={biodiversityData}
+                onClose={() => setShowLegend(false)}
+              />
             ) : result && (
               <Legend
                 analysisResult={result}
@@ -313,7 +367,7 @@ export default function Home() {
         
         {/* Legend Toggle Button (when legend is hidden but results exist) */}
         {!showLegend && (result || (selectedModel === 'bs1.0')) && (
-          <div className="absolute bottom-4 left-4 z-[1000]">
+          <div className={`absolute z-[1000] ${selectedModel === 'bs1.0' ? 'top-4 left-4' : 'bottom-4 left-4'}`}>
             <button
               onClick={() => setShowLegend(true)}
               className="bg-white hover:bg-gray-50 border border-gray-300 rounded-lg p-3 shadow-lg transition-colors"

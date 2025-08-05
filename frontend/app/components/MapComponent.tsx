@@ -41,6 +41,8 @@ const MapComponent = forwardRef<MapComponentRef, MapComponentProps>(({
   const mapInstance = useRef<L.Map | null>(null);
   const imageOverlay = useRef<L.ImageOverlay | null>(null);
   const geoJsonLayer = useRef<L.GeoJSON | null>(null);
+  const currentGeojsonData = useRef<GeoJSON.FeatureCollection | null>(null);
+  const currentMetric = useRef<string>('');
 
 
   useImperativeHandle(ref, () => ({
@@ -49,6 +51,10 @@ const MapComponent = forwardRef<MapComponentRef, MapComponentProps>(({
 
       generateOccupancyImageOverlay: async (geojsonData: GeoJSON.FeatureCollection) => {
         if (!mapInstance.current) return;
+
+        // Store data for tooltip functionality
+        currentGeojsonData.current = geojsonData;
+        currentMetric.current = 'Rel_Occupancy';
 
         const points = geojsonData.features
           .map((f: any) => {
@@ -118,8 +124,24 @@ const MapComponent = forwardRef<MapComponentRef, MapComponentProps>(({
         }
         imageOverlay.current = L.imageOverlay(imageUrl, bounds, {
           opacity: 0.7,
-          interactive: false,
+          interactive: true,
           className: 'occupancy-overlay'
+        });
+        
+        // Add mousemove event for tooltip
+        imageOverlay.current.on('mousemove', (e: any) => {
+          const { lat, lng } = e.latlng;
+          const value = getValueAtCoordinate(lat, lng, currentGeojsonData.current, currentMetric.current);
+          if (value !== null) {
+            const popup = L.popup()
+              .setLatLng([lat, lng])
+              .setContent(`${currentMetric.current}: ${value.toFixed(4)}`)
+              .openOn(mapInstance.current!);
+          }
+        });
+        
+        imageOverlay.current.on('mouseout', () => {
+          mapInstance.current?.closePopup();
         });
         imageOverlay.current?.addTo(mapInstance.current);
 
@@ -137,6 +159,10 @@ const MapComponent = forwardRef<MapComponentRef, MapComponentProps>(({
 
       generateBiotaImageOverlay: async (geojsonData: GeoJSON.FeatureCollection) => {
         if (!mapInstance.current) return;
+
+        // Store data for tooltip functionality
+        currentGeojsonData.current = geojsonData;
+        currentMetric.current = 'Biota_Overlap';
 
         const points = geojsonData.features
           .map((f: any) => {
@@ -206,8 +232,24 @@ const MapComponent = forwardRef<MapComponentRef, MapComponentProps>(({
         }
         imageOverlay.current = L.imageOverlay(imageUrl, bounds, {
           opacity: 0.7,
-          interactive: false,
+          interactive: true,
           className: 'biota-overlay'
+        });
+        
+        // Add mousemove event for tooltip
+        imageOverlay.current.on('mousemove', (e: any) => {
+          const { lat, lng } = e.latlng;
+          const value = getValueAtCoordinate(lat, lng, currentGeojsonData.current, currentMetric.current);
+          if (value !== null) {
+            const popup = L.popup()
+              .setLatLng([lat, lng])
+              .setContent(`${currentMetric.current}: ${value.toFixed(4)}`)
+              .openOn(mapInstance.current!);
+          }
+        });
+        
+        imageOverlay.current.on('mouseout', () => {
+          mapInstance.current?.closePopup();
         });
         imageOverlay.current?.addTo(mapInstance.current);
 
@@ -225,6 +267,10 @@ const MapComponent = forwardRef<MapComponentRef, MapComponentProps>(({
 
       generateRichnessImageOverlay: async (geojsonData: GeoJSON.FeatureCollection) => {
         if (!mapInstance.current) return;
+
+        // Store data for tooltip functionality
+        currentGeojsonData.current = geojsonData;
+        currentMetric.current = 'Rel_Species_Richness';
 
         // 1. Extraer puntos
         const points: { lat: number; lng: number; value: number }[] = geojsonData.features
@@ -301,8 +347,24 @@ const MapComponent = forwardRef<MapComponentRef, MapComponentProps>(({
         }
         imageOverlay.current = L.imageOverlay(imageUrl, bounds, {
           opacity: 0.7,
-          interactive: false,
+          interactive: true,
           className: 'richness-overlay'
+        });
+        
+        // Add mousemove event for tooltip
+        imageOverlay.current.on('mousemove', (e: any) => {
+          const { lat, lng } = e.latlng;
+          const value = getValueAtCoordinate(lat, lng, currentGeojsonData.current, currentMetric.current);
+          if (value !== null) {
+            const popup = L.popup()
+              .setLatLng([lat, lng])
+              .setContent(`${currentMetric.current}: ${value.toFixed(4)}`)
+              .openOn(mapInstance.current!);
+          }
+        });
+        
+        imageOverlay.current.on('mouseout', () => {
+          mapInstance.current?.closePopup();
         });
         imageOverlay.current?.addTo(mapInstance.current);
 
@@ -395,6 +457,26 @@ const MapComponent = forwardRef<MapComponentRef, MapComponentProps>(({
       }
     }));
 
+  // Helper function to get value at specific coordinate
+  const getValueAtCoordinate = (lat: number, lng: number, geojsonData: GeoJSON.FeatureCollection | null, metric: string): number | null => {
+    if (!geojsonData) return null;
+    
+    // Find the closest point to the cursor position
+    let closestDistance = Infinity;
+    let closestValue = null;
+    
+    for (const feature of geojsonData.features) {
+      const [fLng, fLat] = (feature.geometry as any).coordinates;
+      const distance = Math.hypot(lat - fLat, lng - fLng);
+      
+      if (distance < closestDistance && distance < 0.01) { // Within ~1km threshold
+        closestDistance = distance;
+        closestValue = (feature.properties as any)?.[metric];
+      }
+    }
+    
+    return closestValue;
+  };
 
   useEffect(() => {
     if (!mapContainer.current || mapInstance.current || !L) return;
