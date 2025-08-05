@@ -69,6 +69,10 @@ export default function Home() {
       const zoom = getLocationZoom();
       map.setView([location.lat, location.lng], zoom);
       
+      // ⬇️ Dynamic Import (only on client side)
+      const Lmod = await import('leaflet');
+      const L = Lmod.default ?? Lmod;
+
       // Add or update user location marker
       L.marker([location.lat, location.lng])
         .addTo(map)

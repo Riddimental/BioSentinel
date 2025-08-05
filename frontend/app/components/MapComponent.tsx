@@ -121,12 +121,12 @@ const MapComponent = forwardRef<MapComponentRef, MapComponentProps>(({
           interactive: false,
           className: 'occupancy-overlay'
         });
-        imageOverlay.current.addTo(mapInstance.current);
+        imageOverlay.current?.addTo(mapInstance.current);
 
         // Hacer zoom a los bounds del overlay
         try {
-          const overlayBounds = imageOverlay.current.getBounds();
-          if (overlayBounds.isValid()) {
+          const overlayBounds = imageOverlay.current?.getBounds();
+          if (overlayBounds?.isValid()) {
             mapInstance.current.fitBounds(overlayBounds);
           }
         } catch (e) {
@@ -209,12 +209,12 @@ const MapComponent = forwardRef<MapComponentRef, MapComponentProps>(({
           interactive: false,
           className: 'biota-overlay'
         });
-        imageOverlay.current.addTo(mapInstance.current);
+        imageOverlay.current?.addTo(mapInstance.current);
 
         // Hacer zoom a los bounds del overlay
         try {
-          const overlayBounds = imageOverlay.current.getBounds();
-          if (overlayBounds.isValid()) {
+          const overlayBounds = imageOverlay.current?.getBounds();
+          if (overlayBounds?.isValid()) {
             mapInstance.current.fitBounds(overlayBounds);
           }
         } catch (e) {
@@ -304,12 +304,12 @@ const MapComponent = forwardRef<MapComponentRef, MapComponentProps>(({
           interactive: false,
           className: 'richness-overlay'
         });
-        imageOverlay.current.addTo(mapInstance.current);
+        imageOverlay.current?.addTo(mapInstance.current);
 
         // Hacer zoom a los bounds del overlay
         try {
-          const overlayBounds = imageOverlay.current.getBounds();
-          if (overlayBounds.isValid()) {
+          const overlayBounds = imageOverlay.current?.getBounds();
+          if (overlayBounds?.isValid()) {
             mapInstance.current.fitBounds(overlayBounds);
           }
         } catch (e) {
@@ -330,15 +330,15 @@ const MapComponent = forwardRef<MapComponentRef, MapComponentProps>(({
           className: 'biodiversity-overlay'
         });
 
-        imageOverlay.current.on('error', (e) => {
+        imageOverlay.current?.on('error', (e) => {
           console.error('Image overlay failed to load:', e);
         });
 
-        imageOverlay.current.on('load', () => {
+        imageOverlay.current?.on('load', () => {
           console.log('Image overlay loaded successfully');
         });
 
-        imageOverlay.current.addTo(mapInstance.current);
+        imageOverlay.current?.addTo(mapInstance.current);
       },
 
       removeImageOverlay: () => {
@@ -365,7 +365,10 @@ const MapComponent = forwardRef<MapComponentRef, MapComponentProps>(({
             opacity: 0.8,
             fillOpacity: 0.3,
           },
-          onEachFeature: (feature, layer) => {
+          onEachFeature: (
+            feature: GeoJSON.Feature<GeoJSON.Geometry, { name?: string }>,
+            layer: L.Layer
+          ) => {
             if (feature.properties?.name) {
               layer.bindPopup(feature.properties.name);
             }
@@ -374,8 +377,8 @@ const MapComponent = forwardRef<MapComponentRef, MapComponentProps>(({
 
         // Zoom automático a los bounds del GeoJSON
         try {
-          const bounds = geoJsonLayer.current.getBounds();
-          if (bounds.isValid()) {
+          const bounds = geoJsonLayer.current?.getBounds();
+          if (bounds?.isValid()) {
             mapInstance.current.fitBounds(bounds);
           }
         } catch (e) {
