@@ -137,7 +137,7 @@ export default function ControlPanel({
                 onChange={() => setSelectedMetrics?.({richness: true, biotaOverlap: false, occupancy: false})}
                 className="mr-2"
               />
-              <span className="text-sm">Riqueza de especies</span>
+              <span className="text-sm">Riqueza de especies: número de especies distintas presentes en una zona.</span>
             </label>
             <label className="flex items-center">
               <input
@@ -147,7 +147,7 @@ export default function ControlPanel({
                 onChange={() => setSelectedMetrics?.({richness: false, biotaOverlap: true, occupancy: false})}
                 className="mr-2"
               />
-              <span className="text-sm">Solapamiento de biota</span>
+              <span className="text-sm">Solapamiento de biota: regiones donde coexisten múltiples grupos taxonómicos.</span>
             </label>
             <label className="flex items-center">
               <input
@@ -157,7 +157,7 @@ export default function ControlPanel({
                 onChange={() => setSelectedMetrics?.({richness: false, biotaOverlap: false, occupancy: true})}
                 className="mr-2"
               />
-              <span className="text-sm">Ocupación relativa</span>
+              <span className="text-sm">Ocupación relativa: áreas donde una especie o grupo está firmemente establecido.</span>
             </label>
           </div>
         </div>
