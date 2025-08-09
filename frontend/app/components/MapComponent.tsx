@@ -410,7 +410,6 @@ const MapComponent = forwardRef<MapComponentRef, MapComponentProps>(({
         }
       },
 
-      /** NUEVO: Agregar GeoJSON */
       addGeoJSONLayer: (geojsonData: GeoJSON.GeoJsonObject) => {
         if (!mapInstance.current) return;
 

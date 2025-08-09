@@ -18,7 +18,7 @@ interface ControlPanelProps {
   analysisError?: string | null;
   onClearResults?: () => void;
   className?: string;
-  onShowDummyGeoJSON?: () => void;
+  onShowGeoJSON?: () => void;
   selectedMetrics?: any;
   setSelectedMetrics?: (metrics: any) => void;
   selectedTaxon?: string;
@@ -39,7 +39,7 @@ export default function ControlPanel({
   analysisError,
   onClearResults,
   className,
-  onShowDummyGeoJSON,
+  onShowGeoJSON,
   selectedMetrics,
   setSelectedMetrics,
   selectedTaxon,
@@ -137,7 +137,7 @@ export default function ControlPanel({
                 onChange={() => setSelectedMetrics?.({richness: true, biotaOverlap: false, occupancy: false})}
                 className="mr-2"
               />
-              <span className="text-sm">Riqueza de especies: número de especies distintas presentes en una zona.</span>
+              <span className="text-black">Riqueza de especies: número de especies distintas presentes en una zona.</span>
             </label>
             <label className="flex items-center">
               <input
@@ -147,7 +147,7 @@ export default function ControlPanel({
                 onChange={() => setSelectedMetrics?.({richness: false, biotaOverlap: true, occupancy: false})}
                 className="mr-2"
               />
-              <span className="text-sm">Solapamiento de biota: regiones donde coexisten múltiples grupos taxonómicos.</span>
+              <span className="text-black">Solapamiento de biota: regiones donde coexisten múltiples grupos taxonómicos.</span>
             </label>
             <label className="flex items-center">
               <input
@@ -157,7 +157,7 @@ export default function ControlPanel({
                 onChange={() => setSelectedMetrics?.({richness: false, biotaOverlap: false, occupancy: true})}
                 className="mr-2"
               />
-              <span className="text-sm">Ocupación relativa: áreas donde una especie o grupo está firmemente establecido.</span>
+              <span className="text-black">Ocupación relativa: áreas donde una especie o grupo está firmemente establecido.</span>
             </label>
           </div>
         </div>
@@ -167,7 +167,7 @@ export default function ControlPanel({
       <button
         disabled={isLoading || (selectedModel !== 'bs1.0' && (!currentBounds || !!validationError))}
         className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed text-white font-medium py-3 px-4 rounded-md transition-colors duration-200 flex items-center justify-center mb-4"
-        onClick={selectedModel === 'bs1.0' ? onShowDummyGeoJSON : onAnalyze}
+        onClick={selectedModel === 'bs1.0' ? onShowGeoJSON : onAnalyze}
       >
         {isLoading ? (
           <>

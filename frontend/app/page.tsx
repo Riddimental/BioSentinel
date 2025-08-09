@@ -96,7 +96,7 @@ const MapComponent = dynamic(() => import('./components/MapComponent'), {
 });
 
 export default function Home() {
-  const [selectedModel, setSelectedModel] = useState('segformer-b0-ade20k');
+  const [selectedModel, setSelectedModel] = useState('bs1.0');
   const [currentBounds, setCurrentBounds] = useState<any>(null);
   const [boundsInfo, setBoundsInfo] = useState<string>('');
   const [validationError, setValidationError] = useState<string>('');
@@ -197,7 +197,7 @@ export default function Home() {
     }
   }, [currentBounds, selectedModel, resolutionThreshold, analyze, clearResult]);
 
-  const handleShowDummyGeoJSON = async () => {
+  const handleShowGeoJSON = async () => {
     const taxa_path = `/GEOJsons/${selectedTaxon}.geojson`;
     const response = await fetch(taxa_path);
     const geojsonData = await response.json();
@@ -238,14 +238,15 @@ export default function Home() {
       taxon: selectedTaxon,
       metric: metricMap[activeMetric as keyof typeof metricMap],
       longitude: centerLng,
-      latitude: centerLat
+      latitude: centerLat,
+      radius_km: 50
     };
     
     console.log('Sending request:', requestBody);
     setIsBiodiversityLoading(true);
     
     try {
-      const response = await fetch('http://127.0.0.1:8000/classify_image/', {
+      const response = await fetch('http://127.0.0.1:8000/bs10/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -400,7 +401,7 @@ export default function Home() {
         resolutionThreshold={resolutionThreshold}
         setResolutionThreshold={setResolutionThreshold}
         className="w-1/4"
-        onShowDummyGeoJSON={selectedModel === 'bs1.0' ? handleBiodiversityAnalysis : handleShowDummyGeoJSON}
+        onShowGeoJSON={selectedModel === 'bs1.0' ? handleBiodiversityAnalysis : handleShowGeoJSON}
         selectedMetrics={selectedMetrics}
         setSelectedMetrics={setSelectedMetrics}
         selectedTaxon={selectedTaxon}
