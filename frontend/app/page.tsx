@@ -111,6 +111,7 @@ export default function Home() {
   });
   const [isBiodiversityLoading, setIsBiodiversityLoading] = useState(false);
   const [biodiversityData, setBiodiversityData] = useState<any>(null);
+  const [errorMessage, setErrorMessage] = useState<string>('');
 
   
   
@@ -165,7 +166,8 @@ export default function Home() {
     
     const validation = validateBounds(currentBounds);
     if (!validation.valid) {
-      alert(`No se puede analizar: ${validation.reason}`);
+      setErrorMessage(`No se puede analizar: ${validation.reason}`);
+      setTimeout(() => setErrorMessage(''), 5000);
       return;
     }
 
@@ -174,6 +176,8 @@ export default function Home() {
       clearResult();
       setShowLegend(false);
       setAnalyzedBounds(null);
+      setErrorMessage('');
+      clearResult();
       const mapInstance = mapRef.current;
       if (mapInstance) {
         mapInstance.removeImageOverlay();
@@ -194,6 +198,8 @@ export default function Home() {
 
     } catch (error) {
       console.error('Analysis failed:', error);
+      setErrorMessage(error instanceof Error ? error.message : 'Error en el análisis');
+      setTimeout(() => setErrorMessage(''), 5000);
     }
   }, [currentBounds, selectedModel, resolutionThreshold, analyze, clearResult]);
 
@@ -243,6 +249,7 @@ export default function Home() {
     
     console.log('Sending request:', requestBody);
     setIsBiodiversityLoading(true);
+    setErrorMessage('');
     
     try {
       const response = await fetch('http://127.0.0.1:8000/classify_image/', {
@@ -282,6 +289,8 @@ export default function Home() {
       }
     } catch (error) {
       console.error('Biodiversity analysis failed:', error);
+      setErrorMessage(error instanceof Error ? error.message : 'Error en el análisis de biodiversidad');
+      setTimeout(() => setErrorMessage(''), 5000);
     } finally {
       setIsBiodiversityLoading(false);
     }
@@ -325,6 +334,43 @@ export default function Home() {
           className="w-full h-full"
         />
         
+        {/* Error Message */}
+        {(errorMessage || analysisError) && (
+          <div className="absolute top-4 left-4 z-[1100] max-w-md">
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 shadow-lg">
+              <div className="flex items-start">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div className="ml-3 flex-1">
+                  <h3 className="text-sm font-medium text-red-800">Error</h3>
+                  <p className="mt-1 text-sm text-red-700">
+                    {(errorMessage || analysisError)?.includes('Total request size') && (errorMessage || analysisError)?.includes('bytes') 
+                      ? 'Por favor aumente la resolución de la imagen o reduzca el área de la región de interés.' 
+                      : (errorMessage || analysisError)
+                    }
+                  </p>
+                </div>
+                <div className="ml-4 flex-shrink-0">
+                  <button
+                    onClick={() => {
+                      setErrorMessage('');
+                      clearResult();
+                    }}
+                    className="inline-flex text-red-400 hover:text-red-600 focus:outline-none"
+                  >
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Map Overlay Controls */}
         <div className="absolute top-4 right-4 z-[1000] flex gap-2">
           {/* Search Box */}

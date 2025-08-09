@@ -34,7 +34,7 @@ export function useMapAnalysis(): UseMapAnalysisReturn {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}` + ` - ${errorData.message || 'Unknown error'}`);
       }
 
       const data: AnalysisResponse = await response.json();

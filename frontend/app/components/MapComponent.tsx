@@ -129,7 +129,7 @@ const MapComponent = forwardRef<MapComponentRef, MapComponentProps>(({
         });
         
         // Add mousemove event for tooltip
-        imageOverlay.current.on('mousemove', (e: any) => {
+        imageOverlay.current?.on('mousemove', (e: any) => {
           const { lat, lng } = e.latlng;
           const value = getValueAtCoordinate(lat, lng, currentGeojsonData.current, currentMetric.current);
           if (value !== null) {
@@ -140,7 +140,7 @@ const MapComponent = forwardRef<MapComponentRef, MapComponentProps>(({
           }
         });
         
-        imageOverlay.current.on('mouseout', () => {
+        imageOverlay.current?.on('mouseout', () => {
           mapInstance.current?.closePopup();
         });
         imageOverlay.current?.addTo(mapInstance.current);
@@ -237,7 +237,7 @@ const MapComponent = forwardRef<MapComponentRef, MapComponentProps>(({
         });
         
         // Add mousemove event for tooltip
-        imageOverlay.current.on('mousemove', (e: any) => {
+        imageOverlay.current?.on('mousemove', (e: any) => {
           const { lat, lng } = e.latlng;
           const value = getValueAtCoordinate(lat, lng, currentGeojsonData.current, currentMetric.current);
           if (value !== null) {
@@ -248,7 +248,7 @@ const MapComponent = forwardRef<MapComponentRef, MapComponentProps>(({
           }
         });
         
-        imageOverlay.current.on('mouseout', () => {
+        imageOverlay.current?.on('mouseout', () => {
           mapInstance.current?.closePopup();
         });
         imageOverlay.current?.addTo(mapInstance.current);
@@ -352,7 +352,7 @@ const MapComponent = forwardRef<MapComponentRef, MapComponentProps>(({
         });
         
         // Add mousemove event for tooltip
-        imageOverlay.current.on('mousemove', (e: any) => {
+        imageOverlay.current?.on('mousemove', (e: any) => {
           const { lat, lng } = e.latlng;
           const value = getValueAtCoordinate(lat, lng, currentGeojsonData.current, currentMetric.current);
           if (value !== null) {
@@ -363,7 +363,7 @@ const MapComponent = forwardRef<MapComponentRef, MapComponentProps>(({
           }
         });
         
-        imageOverlay.current.on('mouseout', () => {
+        imageOverlay.current?.on('mouseout', () => {
           mapInstance.current?.closePopup();
         });
         imageOverlay.current?.addTo(mapInstance.current);

@@ -119,10 +119,10 @@ export default function ControlPanel({
             onChange={(e) => onTaxonChange?.(e.target.value)}
             className="w-full px-3 py-2 text-gray-900 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white mb-4"
           >
-            <option value="mammals">Mamíferos</option>
-            <option value="birds">Aves</option>
-            <option value="reptiles">Reptiles</option>
-            <option value="amphibians">Anfibios</option>
+            <option value="mammals">🦁 Mamíferos</option>
+            <option value="birds">🦅 Aves</option>
+            <option value="reptiles">🦎 Reptiles</option>
+            <option value="amphibians">🐸 Anfibios</option>
           </select>
           
           <label className="block text-sm font-medium text-gray-700 mb-2">
