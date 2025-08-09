@@ -104,7 +104,7 @@ export default function Home() {
   const [analyzedBounds, setAnalyzedBounds] = useState<any>(null);
   const [resolutionThreshold, setResolutionThreshold] = useState(50);
   const [selectedTaxon, setSelectedTaxon] = useState('mammals');
-  const [selectedMetrics, setSelectedMetrics] = useState({
+  const [selectedMetrics, setSelectedMetrics] = useState({ 
     biotaOverlap: false,
     richness: true,
     occupancy: false,
