@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { AnalysisRequest, AnalysisResponse } from '../types/api';
+import { API_BASE_URL } from '../environment';
 
 interface UseMapAnalysisReturn {
   analyze: (request: AnalysisRequest) => Promise<void>;
@@ -24,7 +25,7 @@ export function useMapAnalysis(): UseMapAnalysisReturn {
     try {
       console.log('Starting analysis with request:', request);
       
-      const response = await fetch('http://127.0.0.1:8000/classify_image/', {
+      const response = await fetch(`${API_BASE_URL}/classify_image/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

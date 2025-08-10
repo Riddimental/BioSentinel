@@ -8,6 +8,7 @@ import MapSearch from './components/MapSearch';
 import ControlPanel from './components/ControlPanel';
 import Legend from './components/Legend';
 import { useMapAnalysis } from './hooks/useMapAnalysis';
+import { API_BASE_URL } from './environment';
 
 // Biodiversity Legend Component
 function BiodiversityLegend({ biodiversityData, onClose }: { biodiversityData: any, onClose: () => void }) {
@@ -252,7 +253,7 @@ export default function Home() {
     setErrorMessage('');
     
     try {
-      const response = await fetch('http://127.0.0.1:8000/classify_image/', {
+      const response = await fetch(`${API_BASE_URL}/classify_image/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

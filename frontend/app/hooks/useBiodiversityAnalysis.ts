@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { BiodiversityRequest, BiodiversityResponse } from '../types/api';
+import { API_BASE_URL } from '../environment';
 
 interface UseBiodiversityAnalysisReturn {
   analyze: (request: BiodiversityRequest) => Promise<void>;
@@ -21,7 +22,7 @@ export function useBiodiversityAnalysis(): UseBiodiversityAnalysisReturn {
     setError(null);
     
     try {
-      const response = await fetch('http://127.0.0.1:8000/classify_image/', {
+      const response = await fetch(`${API_BASE_URL}/classify_image/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
