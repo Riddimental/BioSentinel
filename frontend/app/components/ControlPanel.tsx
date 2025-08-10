@@ -20,10 +20,12 @@ interface ControlPanelProps {
   className?: string;
   onShowGeoJSON?: () => void;
   selectedMetrics?: any;
-  setSelectedMetrics?: (metrics: any) => void;
+  handleSelectedMetricChange: (metric: string) => void;
   selectedTaxon?: string;
   onTaxonChange?: (taxon: string) => void;
 }
+
+
 
 export default function ControlPanel({
   selectedModel,
@@ -41,7 +43,7 @@ export default function ControlPanel({
   className,
   onShowGeoJSON,
   selectedMetrics,
-  setSelectedMetrics,
+  handleSelectedMetricChange,
   selectedTaxon,
   onTaxonChange
 }: ControlPanelProps) {
@@ -126,7 +128,7 @@ export default function ControlPanel({
           </select>
           
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Métrica
+            Vista
           </label>
           <div className="space-y-2">
             <label className="flex items-center">
@@ -134,7 +136,7 @@ export default function ControlPanel({
                 type="radio"
                 name="metric"
                 checked={selectedMetrics?.richness}
-                onChange={() => setSelectedMetrics?.({richness: true, biotaOverlap: false, occupancy: false})}
+                onChange={() => handleSelectedMetricChange('richness')}
                 className="mr-2"
               />
               <span className="text-black">Riqueza de especies: número de especies distintas presentes en una zona.</span>
@@ -144,7 +146,7 @@ export default function ControlPanel({
                 type="radio"
                 name="metric"
                 checked={selectedMetrics?.biotaOverlap}
-                onChange={() => setSelectedMetrics?.({richness: false, biotaOverlap: true, occupancy: false})}
+                onChange={() => handleSelectedMetricChange('biotaOverlap')}
                 className="mr-2"
               />
               <span className="text-black">Solapamiento de biota: regiones donde coexisten múltiples grupos taxonómicos.</span>
@@ -154,7 +156,7 @@ export default function ControlPanel({
                 type="radio"
                 name="metric"
                 checked={selectedMetrics?.occupancy}
-                onChange={() => setSelectedMetrics?.({richness: false, biotaOverlap: false, occupancy: true})}
+                onChange={() => handleSelectedMetricChange('occupancy')}
                 className="mr-2"
               />
               <span className="text-black">Ocupación relativa: áreas donde una especie o grupo está firmemente establecido.</span>

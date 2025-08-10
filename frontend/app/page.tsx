@@ -126,6 +126,31 @@ export default function Home() {
     setValidationError(validation.valid ? '' : validation.reason || '');
   }, []);
 
+  // Agrega esta función para manejar el cambio en métricas seleccionadas
+  const handleSelectedMetricChange = (metric: keyof typeof selectedMetrics) => {
+    console.log(`Metric selected: ${metric}`);
+
+    if (metric === 'biotaOverlap') {
+    setSelectedMetrics({richness: false, biotaOverlap: true, occupancy: false})
+    } else if (metric === 'richness') {
+    setSelectedMetrics({richness: true, biotaOverlap: false, occupancy: false})
+    } else if (metric === 'occupancy') {
+    setSelectedMetrics({richness: false, biotaOverlap: false, occupancy: true})
+    };
+
+    if (localStorage.getItem('tempResponse')) {
+      const geojsonData = JSON.parse(localStorage.getItem('tempResponse') || '');
+      setBiodiversityData({ geojsonData, metric });
+      mapRef.current.generateImageOverlay(geojsonData, metric);
+      setShowLegend(true);
+    }
+    else {
+      console.log('No local data found, requesting from server...');
+      handleBiodiversityAnalysis();
+    }
+  };
+
+
   const handleLocationSelect = useCallback((lat: number, lng: number, zoom: number, name: string) => {
     const map = mapRef.current?.getMap();
     if (map) {
@@ -205,80 +230,57 @@ export default function Home() {
     if (!mapRef.current) return;
     console.log('model selected: ',selectedModel)
     console.log('taxa selected: ',selectedTaxon)
-
-    if (selectedMetrics.richness) {
-      mapRef.current?.generateRichnessImageOverlay(geojsonData);
-    }
-    if (selectedMetrics.biotaOverlap) {
-      mapRef.current?.generateBiotaImageOverlay(geojsonData);
-    }
-    if (selectedMetrics.occupancy) {
-      mapRef.current?.generateOccupancyImageOverlay(geojsonData);
-    }
+    mapRef.current?.generateImageOverlay(geojsonData);
   };
+
 
   const handleBiodiversityAnalysis = async () => {
     if (selectedModel !== 'bs1.0' || !currentBounds) return;
-    
-    const metricMap = {
-      richness: 'richness' as const,
-      biotaOverlap: 'overlap' as const,
-      occupancy: 'occupancy' as const
-    };
-    
+
     const activeMetric = Object.entries(selectedMetrics).find(([_, active]) => active)?.[0];
     if (!activeMetric) return;
-    
-    // Calculate center coordinates from current bounds
+
+    // Calculate center coordinates from current bounds and radius
     const centerLat = (currentBounds.getNorth() + currentBounds.getSouth()) / 2;
     const centerLng = (currentBounds.getEast() + currentBounds.getWest()) / 2;
-    
+    const radiusDegrees = centerLat - currentBounds.getSouth();
+    const radiusKm = radiusDegrees * 111.32;
+    console.log('Radius: ', radiusDegrees, ' degrees, ', radiusKm, ' km');
+
     const requestBody = {
       model: 'bs1.0',
       taxon: selectedTaxon,
-      metric: metricMap[activeMetric as keyof typeof metricMap],
       longitude: centerLng,
       latitude: centerLat,
-      radius_km: 50
+      radius_km: radiusKm,
     };
-    
+
     console.log('Sending request:', requestBody);
     setIsBiodiversityLoading(true);
-    
+
     try {
       const response = await fetch('http://127.0.0.1:8000/bs10/', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(requestBody),
       });
-      
+
       console.log('Response status:', response.status);
-      
+
       if (!response.ok) {
         const errorText = await response.text();
         console.error('Error response:', errorText);
         throw new Error(`HTTP ${response.status}: ${errorText}`);
       }
-      
+
       const data = await response.json();
       console.log('Response data:', data);
-      
-      if (data.success && data.geojson && mapRef.current) {
-        // Parse GeoJSON string to object if needed
+
+      if (data.success && data.geojson) {
         const geojsonData = typeof data.geojson === 'string' ? JSON.parse(data.geojson) : data.geojson;
-        
-        // Store biodiversity data for legend
+        localStorage.setItem('tempResponse', JSON.stringify(geojsonData));
         setBiodiversityData({ geojsonData, activeMetric });
-        
-        if (activeMetric === 'richness') {
-          mapRef.current.generateRichnessImageOverlay(geojsonData);
-        } else if (activeMetric === 'biotaOverlap') {
-          mapRef.current.generateBiotaImageOverlay(geojsonData);
-        } else if (activeMetric === 'occupancy') {
-          mapRef.current.generateOccupancyImageOverlay(geojsonData);
-        }
+        mapRef.current.generateImageOverlay(geojsonData, activeMetric);
         setShowLegend(true);
       }
     } catch (error) {
@@ -287,6 +289,7 @@ export default function Home() {
       setIsBiodiversityLoading(false);
     }
   };
+
 
   const handleClearResults = useCallback(() => {
     clearResult();
@@ -351,7 +354,7 @@ export default function Home() {
         
         {/* Legend Overlay */}
         {showLegend && (result || selectedModel === 'bs1.0') && (
-          <div className={`absolute z-[1000] ${selectedModel === 'bs1.0' ? 'top-4 left-4' : 'bottom-4 left-4'}`}>
+          <div className={`absolute z-[1000] ${selectedModel === 'bs1.0' ? 'bottom-7 left-7' : 'bottom-4 left-4'}`}>
             {selectedModel === 'bs1.0' ? (
               <BiodiversityLegend 
                 biodiversityData={biodiversityData}
@@ -403,7 +406,7 @@ export default function Home() {
         className="w-1/4"
         onShowGeoJSON={selectedModel === 'bs1.0' ? handleBiodiversityAnalysis : handleShowGeoJSON}
         selectedMetrics={selectedMetrics}
-        setSelectedMetrics={setSelectedMetrics}
+        handleSelectedMetricChange={handleSelectedMetricChange}
         selectedTaxon={selectedTaxon}
         onTaxonChange={setSelectedTaxon}
       />

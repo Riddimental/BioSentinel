@@ -27,9 +27,7 @@ export interface MapComponentRef {
   removeImageOverlay: () => void;
   addGeoJSONLayer: (geojsonData: GeoJSON.GeoJsonObject) => void;
   removeGeoJSONLayer: () => void;
-  generateRichnessImageOverlay: (geojsonData: GeoJSON.FeatureCollection) => void;
-  generateOccupancyImageOverlay: (geojsonData: GeoJSON.FeatureCollection) => void;
-  generateBiotaImageOverlay: (geojsonData: GeoJSON.FeatureCollection) => void;
+  generateImageOverlay: (geojsonData: GeoJSON.FeatureCollection, metric?: string) => void;
 }
 
 
@@ -49,23 +47,36 @@ const MapComponent = forwardRef<MapComponentRef, MapComponentProps>(({
       getMap: () => mapInstance.current,
       getBounds: () => mapInstance.current?.getBounds() || null,
 
-      generateOccupancyImageOverlay: async (geojsonData: GeoJSON.FeatureCollection) => {
+      generateImageOverlay: async (
+        geojsonData: GeoJSON.FeatureCollection, 
+        metric: string
+      ) => {
         if (!mapInstance.current) return;
 
-        // Store data for tooltip functionality
         currentGeojsonData.current = geojsonData;
-        currentMetric.current = 'Rel_Occupancy';
+        if (metric === 'richness') {
+          currentMetric.current = 'Rel_Species_Richness';
+        }
+        if (metric === 'biotaOverlap') {
+          currentMetric.current = 'Biota_Overlap';
+        }
+        if (metric === 'occupancy') {
+          currentMetric.current = 'Rel_Occupancy';
+        }
 
+        // Extraer puntos con valor numérico para el metric dado
         const points = geojsonData.features
           .map((f: any) => {
             const [lng, lat] = f.geometry.coordinates;
-            const val = f.properties?.Rel_Occupancy;
-            return (lat && lng && typeof val === 'number') ? { lat, lng, value: val } : null;
+            const val = f.properties?.[currentMetric.current];
+            return (lat != null && lng != null && typeof val === 'number') 
+              ? { lat, lng, value: val } 
+              : null;
           })
-          .filter((p: any) => p !== null) as any[];
+          .filter((p: any) => p !== null) as {lat: number, lng: number, value: number}[];
 
         if (points.length === 0) {
-          console.warn('No valid occupancy points found.');
+          console.warn(`No valid points found for metric '${currentMetric.current}'.`);
           return;
         }
 
@@ -84,6 +95,7 @@ const MapComponent = forwardRef<MapComponentRef, MapComponentProps>(({
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
 
+        // Generar la grilla interpolada con IDW
         const grid: number[][] = [];
         for (let y = 0; y < height; y++) {
           const row: number[] = [];
@@ -98,12 +110,12 @@ const MapComponent = forwardRef<MapComponentRef, MapComponentProps>(({
               num += p.value * w;
               den += w;
             }
-            const interpolated = num / den;
-            row.push(interpolated);
+            row.push(num / den);
           }
           grid.push(row);
         }
 
+        // Normalizar valores
         const flat = grid.flat();
         const min = Math.min(...flat);
         const max = Math.max(...flat);
@@ -119,16 +131,21 @@ const MapComponent = forwardRef<MapComponentRef, MapComponentProps>(({
         }
 
         const imageUrl = canvas.toDataURL();
+
         if (imageOverlay.current) {
           mapInstance.current.removeLayer(imageOverlay.current);
         }
+
+        // Usar clase CSS genérica basada en el metric
+        const className = `overlay-${currentMetric.current.toLowerCase().replace(/[^a-z0-9]/g, '-')}`;
+
         imageOverlay.current = L.imageOverlay(imageUrl, bounds, {
           opacity: 0.7,
           interactive: true,
-          className: 'occupancy-overlay'
+          className,
         });
-        
-        // Add mousemove event for tooltip
+
+        // Tooltip
         imageOverlay.current.on('mousemove', (e: any) => {
           const { lat, lng } = e.latlng;
           const value = getValueAtCoordinate(lat, lng, currentGeojsonData.current, currentMetric.current);
@@ -139,242 +156,20 @@ const MapComponent = forwardRef<MapComponentRef, MapComponentProps>(({
               .openOn(mapInstance.current!);
           }
         });
-        
+
         imageOverlay.current.on('mouseout', () => {
           mapInstance.current?.closePopup();
         });
-        imageOverlay.current?.addTo(mapInstance.current);
 
-        // Hacer zoom a los bounds del overlay
+        imageOverlay.current.addTo(mapInstance.current);
+
+        // Zoom al bounds
         try {
           const overlayBounds = imageOverlay.current?.getBounds();
           if (overlayBounds?.isValid()) {
             mapInstance.current.fitBounds(overlayBounds);
           }
-        } catch (e) {
-          console.warn('No bounds available for image overlay');
-        }
-      },
-
-
-      generateBiotaImageOverlay: async (geojsonData: GeoJSON.FeatureCollection) => {
-        if (!mapInstance.current) return;
-
-        // Store data for tooltip functionality
-        currentGeojsonData.current = geojsonData;
-        currentMetric.current = 'Biota_Overlap';
-
-        const points = geojsonData.features
-          .map((f: any) => {
-            const [lng, lat] = f.geometry.coordinates;
-            const val = f.properties?.Biota_Overlap;
-            return (lat && lng && typeof val === 'number') ? { lat, lng, value: val } : null;
-          })
-          .filter((p: any) => p !== null) as any[];
-
-        if (points.length === 0) {
-          console.warn('No valid biota overlap points found.');
-          return;
-        }
-
-        const latitudes = points.map(p => p.lat);
-        const longitudes = points.map(p => p.lng);
-        const bounds = L.latLngBounds(
-          [Math.min(...latitudes), Math.min(...longitudes)],
-          [Math.max(...latitudes), Math.max(...longitudes)]
-        );
-
-        const width = 256;
-        const height = 256;
-        const canvas = document.createElement('canvas');
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return;
-
-        const grid: number[][] = [];
-        for (let y = 0; y < height; y++) {
-          const row: number[] = [];
-          for (let x = 0; x < width; x++) {
-            const lat = bounds.getSouth() + (bounds.getNorth() - bounds.getSouth()) * (1 - y / height);
-            const lng = bounds.getWest() + (bounds.getEast() - bounds.getWest()) * (x / width);
-
-            let num = 0, den = 0;
-            for (const p of points) {
-              const d = Math.hypot(lat - p.lat, lng - p.lng) + 1e-6;
-              const w = 1 / (d ** 2);
-              num += p.value * w;
-              den += w;
-            }
-            const interpolated = num / den;
-            row.push(interpolated);
-          }
-          grid.push(row);
-        }
-
-        const flat = grid.flat();
-        const min = Math.min(...flat);
-        const max = Math.max(...flat);
-
-        for (let y = 0; y < height; y++) {
-          for (let x = 0; x < width; x++) {
-            const norm = (grid[y][x] - min) / (max - min + 1e-6);
-            const r = Math.round(255 * norm);
-            const b = Math.round(255 * (1 - norm));
-            ctx.fillStyle = `rgb(${r},0,${b})`;
-            ctx.fillRect(x, y, 1, 1);
-          }
-        }
-
-        const imageUrl = canvas.toDataURL();
-        if (imageOverlay.current) {
-          mapInstance.current.removeLayer(imageOverlay.current);
-        }
-        imageOverlay.current = L.imageOverlay(imageUrl, bounds, {
-          opacity: 0.7,
-          interactive: true,
-          className: 'biota-overlay'
-        });
-        
-        // Add mousemove event for tooltip
-        imageOverlay.current.on('mousemove', (e: any) => {
-          const { lat, lng } = e.latlng;
-          const value = getValueAtCoordinate(lat, lng, currentGeojsonData.current, currentMetric.current);
-          if (value !== null) {
-            const popup = L.popup()
-              .setLatLng([lat, lng])
-              .setContent(`${currentMetric.current}: ${value.toFixed(4)}`)
-              .openOn(mapInstance.current!);
-          }
-        });
-        
-        imageOverlay.current.on('mouseout', () => {
-          mapInstance.current?.closePopup();
-        });
-        imageOverlay.current?.addTo(mapInstance.current);
-
-        // Hacer zoom a los bounds del overlay
-        try {
-          const overlayBounds = imageOverlay.current?.getBounds();
-          if (overlayBounds?.isValid()) {
-            mapInstance.current.fitBounds(overlayBounds);
-          }
-        } catch (e) {
-          console.warn('No bounds available for image overlay');
-        }
-      },
-
-
-      generateRichnessImageOverlay: async (geojsonData: GeoJSON.FeatureCollection) => {
-        if (!mapInstance.current) return;
-
-        // Store data for tooltip functionality
-        currentGeojsonData.current = geojsonData;
-        currentMetric.current = 'Rel_Species_Richness';
-
-        // 1. Extraer puntos
-        const points: { lat: number; lng: number; value: number }[] = geojsonData.features
-          .map((f: any) => {
-            const [lng, lat] = f.geometry.coordinates;
-            const val = f.properties?.Rel_Species_Richness;
-            return (lat && lng && typeof val === 'number') ? { lat, lng, value: val } : null;
-          })
-          .filter((p: any) => p !== null) as any[];
-
-        if (points.length === 0) {
-          console.warn('No valid richness points found.');
-          return;
-        }
-
-        // 2. Determinar bounds
-        const latitudes = points.map(p => p.lat);
-        const longitudes = points.map(p => p.lng);
-        const bounds = L.latLngBounds(
-          [Math.min(...latitudes), Math.min(...longitudes)],
-          [Math.max(...latitudes), Math.max(...longitudes)]
-        );
-
-        // 3. Crear canvas
-        const width = 256;
-        const height = 256;
-        const canvas = document.createElement('canvas');
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return;
-
-        // 4. Interpolar valores en grid (IDW simple)
-        const grid: number[][] = [];
-        for (let y = 0; y < height; y++) {
-          const row: number[] = [];
-          for (let x = 0; x < width; x++) {
-            const lat = bounds.getSouth() + (bounds.getNorth() - bounds.getSouth()) * (1 - y / height);
-            const lng = bounds.getWest() + (bounds.getEast() - bounds.getWest()) * (x / width);
-
-            // IDW (inverse distance weighting)
-            let num = 0, den = 0;
-            for (const p of points) {
-              const d = Math.hypot(lat - p.lat, lng - p.lng) + 1e-6;
-              const w = 1 / (d ** 2);
-              num += p.value * w;
-              den += w;
-            }
-            const interpolated = num / den;
-            row.push(interpolated);
-          }
-          grid.push(row);
-        }
-
-        // 5. Normalizar e imprimir como rojo-azul
-        const flat = grid.flat();
-        const min = Math.min(...flat);
-        const max = Math.max(...flat);
-
-        for (let y = 0; y < height; y++) {
-          for (let x = 0; x < width; x++) {
-            const norm = (grid[y][x] - min) / (max - min + 1e-6);
-            const r = Math.round(255 * norm);
-            const b = Math.round(255 * (1 - norm));
-            ctx.fillStyle = `rgb(${r},0,${b})`;
-            ctx.fillRect(x, y, 1, 1);
-          }
-        }
-
-        // 6. Convertir a imagen y mostrar
-        const imageUrl = canvas.toDataURL();
-        if (imageOverlay.current) {
-          mapInstance.current.removeLayer(imageOverlay.current);
-        }
-        imageOverlay.current = L.imageOverlay(imageUrl, bounds, {
-          opacity: 0.7,
-          interactive: true,
-          className: 'richness-overlay'
-        });
-        
-        // Add mousemove event for tooltip
-        imageOverlay.current.on('mousemove', (e: any) => {
-          const { lat, lng } = e.latlng;
-          const value = getValueAtCoordinate(lat, lng, currentGeojsonData.current, currentMetric.current);
-          if (value !== null) {
-            const popup = L.popup()
-              .setLatLng([lat, lng])
-              .setContent(`${currentMetric.current}: ${value.toFixed(4)}`)
-              .openOn(mapInstance.current!);
-          }
-        });
-        
-        imageOverlay.current.on('mouseout', () => {
-          mapInstance.current?.closePopup();
-        });
-        imageOverlay.current?.addTo(mapInstance.current);
-
-        // Hacer zoom a los bounds del overlay
-        try {
-          const overlayBounds = imageOverlay.current?.getBounds();
-          if (overlayBounds?.isValid()) {
-            mapInstance.current.fitBounds(overlayBounds);
-          }
-        } catch (e) {
+        } catch {
           console.warn('No bounds available for image overlay');
         }
       },
