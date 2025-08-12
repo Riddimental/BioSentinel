@@ -163,15 +163,6 @@ const MapComponent = forwardRef<MapComponentRef, MapComponentProps>(({
 
         imageOverlay.current.addTo(mapInstance.current);
 
-        // Zoom al bounds
-        try {
-          const overlayBounds = imageOverlay.current?.getBounds();
-          if (overlayBounds?.isValid()) {
-            mapInstance.current.fitBounds(overlayBounds);
-          }
-        } catch {
-          console.warn('No bounds available for image overlay');
-        }
       },
 
       addImageOverlay: (imageUrl: string, bounds: L.LatLngBounds) => {
