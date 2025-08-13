@@ -25,9 +25,6 @@ export interface MapComponentRef {
   getBounds: () => any;
   addImageOverlay: (imageUrl: string, bounds: any, obj_bounds: any) => void;
   removeImageOverlay: () => void;
-  addGeoJSONLayer: (geojsonData: GeoJSON.GeoJsonObject) => void;
-  removeGeoJSONLayer: () => void;
-  generateImageOverlay: (geojsonData: GeoJSON.FeatureCollection, metric?: string) => void;
 }
 
 
@@ -38,133 +35,11 @@ const MapComponent = forwardRef<MapComponentRef, MapComponentProps>(({
   const mapContainer = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<L.Map | null>(null);
   const imageOverlay = useRef<L.ImageOverlay | null>(null);
-  const geoJsonLayer = useRef<L.GeoJSON | null>(null);
-  const currentGeojsonData = useRef<GeoJSON.FeatureCollection | null>(null);
-  const currentMetric = useRef<string>('');
 
 
   useImperativeHandle(ref, () => ({
       getMap: () => mapInstance.current,
       getBounds: () => mapInstance.current?.getBounds() || null,
-
-      generateImageOverlay: async (
-        geojsonData: GeoJSON.FeatureCollection, 
-        metric: string
-      ) => {
-        if (!mapInstance.current) return;
-
-        currentGeojsonData.current = geojsonData;
-        if (metric === 'richness') {
-          currentMetric.current = 'Rel_Species_Richness';
-        }
-        if (metric === 'biotaOverlap') {
-          currentMetric.current = 'Biota_Overlap';
-        }
-        if (metric === 'occupancy') {
-          currentMetric.current = 'Rel_Occupancy';
-        }
-
-        // Extraer puntos con valor numérico para el metric dado
-        const points = geojsonData.features
-          .map((f: any) => {
-            const [lng, lat] = f.geometry.coordinates;
-            const val = f.properties?.[currentMetric.current];
-            return (lat != null && lng != null && typeof val === 'number') 
-              ? { lat, lng, value: val } 
-              : null;
-          })
-          .filter((p: any) => p !== null) as {lat: number, lng: number, value: number}[];
-
-        if (points.length === 0) {
-          console.warn(`No valid points found for metric '${currentMetric.current}'.`);
-          return;
-        }
-
-        const latitudes = points.map(p => p.lat);
-        const longitudes = points.map(p => p.lng);
-        const bounds = L.latLngBounds(
-          [Math.min(...latitudes), Math.min(...longitudes)],
-          [Math.max(...latitudes), Math.max(...longitudes)]
-        );
-
-        const width = 256;
-        const height = 256;
-        const canvas = document.createElement('canvas');
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return;
-
-        // Generar la grilla interpolada con IDW
-        const grid: number[][] = [];
-        for (let y = 0; y < height; y++) {
-          const row: number[] = [];
-          for (let x = 0; x < width; x++) {
-            const lat = bounds.getSouth() + (bounds.getNorth() - bounds.getSouth()) * (1 - y / height);
-            const lng = bounds.getWest() + (bounds.getEast() - bounds.getWest()) * (x / width);
-
-            let num = 0, den = 0;
-            for (const p of points) {
-              const d = Math.hypot(lat - p.lat, lng - p.lng) + 1e-6;
-              const w = 1 / (d ** 2);
-              num += p.value * w;
-              den += w;
-            }
-            row.push(num / den);
-          }
-          grid.push(row);
-        }
-
-        // Normalizar valores
-        const flat = grid.flat();
-        const min = Math.min(...flat);
-        const max = Math.max(...flat);
-
-        for (let y = 0; y < height; y++) {
-          for (let x = 0; x < width; x++) {
-            const norm = (grid[y][x] - min) / (max - min + 1e-6);
-            const r = Math.round(255 * norm);
-            const b = Math.round(255 * (1 - norm));
-            ctx.fillStyle = `rgb(${r},0,${b})`;
-            ctx.fillRect(x, y, 1, 1);
-          }
-        }
-
-        const imageUrl = canvas.toDataURL();
-
-        if (imageOverlay.current) {
-          mapInstance.current.removeLayer(imageOverlay.current);
-        }
-
-        // Usar clase CSS genérica basada en el metric
-        const className = `overlay-${currentMetric.current.toLowerCase().replace(/[^a-z0-9]/g, '-')}`;
-
-        imageOverlay.current = L.imageOverlay(imageUrl, bounds, {
-          opacity: 0.7,
-          interactive: true,
-          className,
-        });
-
-        // Tooltip
-        imageOverlay.current.on('mousemove', (e: any) => {
-          const { lat, lng } = e.latlng;
-          const value = getValueAtCoordinate(lat, lng, currentGeojsonData.current, currentMetric.current);
-          if (value !== null) {
-            const popup = L.popup()
-              .setLatLng([lat, lng])
-              .setContent(`${currentMetric.current}: ${value.toFixed(4)}`)
-              .openOn(mapInstance.current!);
-          }
-        });
-
-        imageOverlay.current.on('mouseout', () => {
-          mapInstance.current?.closePopup();
-        });
-
-        imageOverlay.current.addTo(mapInstance.current);
-
-      },
-
       addImageOverlay: (imageUrl: string, bounds = null, obj_bounds = null) => {
         if (!mapInstance.current) return;
 
@@ -195,80 +70,13 @@ const MapComponent = forwardRef<MapComponentRef, MapComponentProps>(({
 
         imageOverlay.current?.addTo(mapInstance.current);
       },
-
       removeImageOverlay: () => {
         if (imageOverlay.current && mapInstance.current) {
           mapInstance.current.removeLayer(imageOverlay.current);
           imageOverlay.current = null;
         }
-      },
-
-      addGeoJSONLayer: (geojsonData: GeoJSON.GeoJsonObject) => {
-        if (!mapInstance.current) return;
-
-        // Limpiar geojson previo
-        if (geoJsonLayer.current) {
-          mapInstance.current.removeLayer(geoJsonLayer.current);
-        }
-
-        // Crear nuevo geojson layer
-        geoJsonLayer.current = L.geoJSON(geojsonData, {
-          style: {
-            color: 'red',
-            weight: 2,
-            opacity: 0.8,
-            fillOpacity: 0.3,
-          },
-          onEachFeature: (
-            feature: GeoJSON.Feature<GeoJSON.Geometry, { name?: string }>,
-            layer: L.Layer
-          ) => {
-            if (feature.properties?.name) {
-              layer.bindPopup(feature.properties.name);
-            }
-          }
-        }).addTo(mapInstance.current);
-
-        // Zoom automático a los bounds del GeoJSON
-        try {
-          const bounds = geoJsonLayer.current?.getBounds();
-          if (bounds?.isValid()) {
-            mapInstance.current.fitBounds(bounds);
-          }
-        } catch (e) {
-          console.warn('No bounds available for GeoJSON');
-        }
-      },
-
-      /** NUEVO: limpiar capa geojson */
-      removeGeoJSONLayer: () => {
-        if (geoJsonLayer.current && mapInstance.current) {
-          mapInstance.current.removeLayer(geoJsonLayer.current);
-          geoJsonLayer.current = null;
-        }
       }
     }));
-
-  // Helper function to get value at specific coordinate
-  const getValueAtCoordinate = (lat: number, lng: number, geojsonData: GeoJSON.FeatureCollection | null, metric: string): number | null => {
-    if (!geojsonData) return null;
-    
-    // Find the closest point to the cursor position
-    let closestDistance = Infinity;
-    let closestValue = null;
-    
-    for (const feature of geojsonData.features) {
-      const [fLng, fLat] = (feature.geometry as any).coordinates;
-      const distance = Math.hypot(lat - fLat, lng - fLng);
-      
-      if (distance < closestDistance && distance < 0.01) { // Within ~1km threshold
-        closestDistance = distance;
-        closestValue = (feature.properties as any)?.[metric];
-      }
-    }
-    
-    return closestValue;
-  };
 
   useEffect(() => {
     if (!mapContainer.current || mapInstance.current || !L) return;

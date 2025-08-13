@@ -18,7 +18,7 @@ interface ControlPanelProps {
   analysisError?: string | null;
   onClearResults?: () => void;
   className?: string;
-  onShowGeoJSON?: () => void;
+  useBS10?: () => void;
   selectedMetrics?: any;
   handleSelectedMetricChange: (metric: string) => void;
   selectedTaxon?: string;
@@ -41,7 +41,7 @@ export default function ControlPanel({
   analysisError,
   onClearResults,
   className,
-  onShowGeoJSON,
+  useBS10,
   selectedMetrics,
   handleSelectedMetricChange,
   selectedTaxon,
@@ -156,7 +156,7 @@ export default function ControlPanel({
       <button
         disabled={isLoading || (selectedModel !== 'bs1.0' && (!currentBounds || !!validationError))}
         className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed text-white font-medium py-3 px-4 rounded-md transition-colors duration-200 flex items-center justify-center mb-4"
-        onClick={selectedModel === 'bs1.0' ? onShowGeoJSON : onAnalyze}
+        onClick={selectedModel === 'bs1.0' ? useBS10 : onAnalyze}
       >
         {isLoading ? (
           <>

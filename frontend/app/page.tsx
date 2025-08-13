@@ -126,7 +126,7 @@ export default function Home() {
     setValidationError(validation.valid ? '' : validation.reason || '');
   }, []);
 
-  const handleSelectedMetricChange = (metric: keyof typeof selectedMetrics) => {
+  const handleSelectedMetricChange = async (metric: keyof typeof selectedMetrics) => {
     console.log(`Metric selected: ${metric}`);
 
     if (metric === 'overlap') {
@@ -236,17 +236,6 @@ export default function Home() {
       console.error('Analysis failed:', error);
     }
   }, [currentBounds, selectedModel, resolutionThreshold, analyze, clearResult]);
-
-  const handleShowGeoJSON = async () => {
-    const taxa_path = `/GEOJsons/${selectedTaxon}.geojson`;
-    const response = await fetch(taxa_path);
-    const geojsonData = await response.json();
-
-    if (!mapRef.current) return;
-    console.log('model selected: ',selectedModel)
-    console.log('taxa selected: ',selectedTaxon)
-    mapRef.current?.generateImageOverlay(geojsonData);
-  };
 
 
   const handleBiodiversityAnalysis = async () => {
@@ -438,7 +427,7 @@ export default function Home() {
         resolutionThreshold={resolutionThreshold}
         setResolutionThreshold={setResolutionThreshold}
         className="w-1/4"
-        onShowGeoJSON={selectedModel === 'bs1.0' ? handleBiodiversityAnalysis : handleShowGeoJSON}
+        useBS10={handleBiodiversityAnalysis}
         selectedMetrics={selectedMetrics}
         handleSelectedMetricChange={handleSelectedMetricChange}
         selectedTaxon={selectedTaxon}
