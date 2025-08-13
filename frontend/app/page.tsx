@@ -44,7 +44,7 @@ function BiodiversityLegend({ biodiversityData, onClose }: { biodiversityData: a
   const { geojsonData, activeMetric } = biodiversityData;
   const metricMap = {
     richness: 'Rel_Species_Richness',
-    biotaOverlap: 'Biota_Overlap',
+    overlap: 'Biota_Overlap',
     occupancy: 'Rel_Occupancy'
   };
   
@@ -105,13 +105,12 @@ export default function Home() {
   const [resolutionThreshold, setResolutionThreshold] = useState(50);
   const [selectedTaxon, setSelectedTaxon] = useState('mammals');
   const [selectedMetrics, setSelectedMetrics] = useState({
-    biotaOverlap: false,
     richness: true,
+    overlap: false,
     occupancy: false,
   });
   const [localResponse, setLocalResponse] = useState(null);
   const [isBiodiversityLoading, setIsBiodiversityLoading] = useState(false);
-  const [biodiversityData, setBiodiversityData] = useState<any>(null);
 
   
   
@@ -130,19 +129,34 @@ export default function Home() {
   const handleSelectedMetricChange = (metric: keyof typeof selectedMetrics) => {
     console.log(`Metric selected: ${metric}`);
 
-    if (metric === 'biotaOverlap') {
-      setSelectedMetrics({ richness: false, biotaOverlap: true, occupancy: false });
+    if (metric === 'overlap') {
+      setSelectedMetrics({ richness: false, overlap: true, occupancy: false });
     } else if (metric === 'richness') {
-      setSelectedMetrics({ richness: true, biotaOverlap: false, occupancy: false });
+      setSelectedMetrics({ richness: true, overlap: false, occupancy: false });
     } else if (metric === 'occupancy') {
-      setSelectedMetrics({ richness: false, biotaOverlap: false, occupancy: true });
+      setSelectedMetrics({ richness: false, overlap: false, occupancy: true });
     }
-
+    
     setTimeout(async () => {
       if (localResponse) { 
-        setBiodiversityData({ geojsonData: localResponse, metric });
-        mapRef.current.generateImageOverlay(localResponse, metric);
-        setShowLegend(true);
+        const mapInstance = mapRef.current;
+        if (mapInstance) {
+          mapInstance.removeImageOverlay();
+          const overlayImages = {
+            richness: localResponse.images.richness,
+            occupancy: localResponse.images.occupancy,
+            overlap: localResponse.images.overlap,
+          };
+          const activeImage = overlayImages[metric];
+          if (activeImage) {
+            const overlaySrc = activeImage.startsWith('data:image/')
+              ? activeImage
+              : `data:image/png;base64,${activeImage}`;
+            const response_bounds = localResponse.metadata.bounds
+            mapInstance.addImageOverlay(overlaySrc, null, response_bounds);
+            //setShowLegend(true);
+          }
+        }
       } else {
         console.log('No local data found, requesting from server...');
         await handleBiodiversityAnalysis();
@@ -273,14 +287,36 @@ export default function Home() {
       }
 
       const data = await response.json();
+      setLocalResponse(data);
       console.log('Response data:', data);
 
-      if (data.success && data.geojson) {
-        const geojsonData = typeof data.geojson === 'string' ? JSON.parse(data.geojson) : data.geojson;
-        setLocalResponse(geojsonData);
-        setBiodiversityData({ geojsonData, activeMetric });
-        mapRef.current.generateImageOverlay(geojsonData, activeMetric);
-        setShowLegend(true);
+      if (data.success) {
+        clearResult();
+        setShowLegend(false);
+        setAnalyzedBounds(null);
+        // Guardar las 3 imágenes (de preferencia en base64)
+
+        const mapInstance = mapRef.current;
+        if (mapInstance) {
+          mapInstance.removeImageOverlay();
+          const overlayImages = {
+            richness: data.images.richness,
+            occupancy: data.images.occupancy,
+            overlap: data.images.overlap,
+          };
+
+          
+
+          const activeImage = overlayImages[activeMetric];
+          if (activeImage) {
+            const overlaySrc = activeImage.startsWith('data:image/')
+              ? activeImage
+              : `data:image/png;base64,${activeImage}`;
+            const response_bounds = data.metadata.bounds
+            mapInstance.addImageOverlay(overlaySrc, null, response_bounds);
+            //setShowLegend(true);
+          }
+        }
       }
     } catch (error) {
       console.error('Biodiversity analysis failed:', error);
@@ -294,7 +330,6 @@ export default function Home() {
     clearResult();
     setShowLegend(false);
     setAnalyzedBounds(null);
-    setBiodiversityData(null);
     const mapInstance = mapRef.current;
     if (mapInstance) {
       mapInstance.removeImageOverlay();

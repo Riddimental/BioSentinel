@@ -23,7 +23,7 @@ if (typeof window !== 'undefined') {
 export interface MapComponentRef {
   getMap: () => any;
   getBounds: () => any;
-  addImageOverlay: (imageUrl: string, bounds: any) => void;
+  addImageOverlay: (imageUrl: string, bounds: any, obj_bounds: any) => void;
   removeImageOverlay: () => void;
   addGeoJSONLayer: (geojsonData: GeoJSON.GeoJsonObject) => void;
   removeGeoJSONLayer: () => void;
@@ -165,15 +165,22 @@ const MapComponent = forwardRef<MapComponentRef, MapComponentProps>(({
 
       },
 
-      addImageOverlay: (imageUrl: string, bounds: L.LatLngBounds) => {
+      addImageOverlay: (imageUrl: string, bounds = null, obj_bounds = null) => {
         if (!mapInstance.current) return;
+
+        if (bounds === null){
+          const southWest = L.latLng(obj_bounds.south, obj_bounds.west);
+          const northEast = L.latLng(obj_bounds.north, obj_bounds.east);
+
+          bounds = L.latLngBounds(southWest, northEast);
+        }
 
         if (imageOverlay.current) {
           mapInstance.current.removeLayer(imageOverlay.current);
         }
 
         imageOverlay.current = L.imageOverlay(imageUrl, bounds, {
-          opacity: 0.7,
+          opacity: 0.6,
           interactive: false,
           className: 'biodiversity-overlay'
         });

@@ -127,40 +127,27 @@ export default function ControlPanel({
             <option value="amphibians">Anfibios</option>
           </select>
           
+          {/* Vista */}
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Vista
+            Metrica
           </label>
-          <div className="space-y-2">
-            <label className="flex items-center">
-              <input
-                type="radio"
-                name="metric"
-                checked={selectedMetrics?.richness}
-                onChange={() => handleSelectedMetricChange('richness')}
-                className="mr-2"
-              />
-              <span className="text-black">Riqueza de especies: número de especies distintas presentes en una zona.</span>
-            </label>
-            <label className="flex items-center">
-              <input
-                type="radio"
-                name="metric"
-                checked={selectedMetrics?.biotaOverlap}
-                onChange={() => handleSelectedMetricChange('biotaOverlap')}
-                className="mr-2"
-              />
-              <span className="text-black">Solapamiento de biota: regiones donde coexisten múltiples grupos taxonómicos.</span>
-            </label>
-            <label className="flex items-center">
-              <input
-                type="radio"
-                name="metric"
-                checked={selectedMetrics?.occupancy}
-                onChange={() => handleSelectedMetricChange('occupancy')}
-                className="mr-2"
-              />
-              <span className="text-black">Ocupación relativa: áreas donde una especie o grupo está firmemente establecido.</span>
-            </label>
+          <div className="flex space-x-10 justify-center">
+            {[
+              { key: 'richness', label: 'Riqueza de especies: número de especies distintas presentes en una zona.', emoji: '🌿' },
+              { key: 'overlap', label: 'Solapamiento de biota: regiones donde coexisten múltiples grupos taxonómicos.', emoji: '🦜' },
+              { key: 'occupancy', label: 'Ocupación relativa: áreas donde una especie o grupo está firmemente establecido.', emoji: '🐾' },
+            ].map((metric) => (
+              <button
+                key={metric.key}
+                onClick={() => handleSelectedMetricChange(metric.key)}
+                className={`relative w-12 h-12 rounded-full text-2xl flex items-center justify-center transition-opacity duration-200 ${
+                  selectedMetrics?.[metric.key] ? 'opacity-100 bg-blue-100' : 'opacity-50 bg-gray-200'
+                }`}
+                title={metric.label} // tooltip al hacer hover
+              >
+                {metric.emoji}
+              </button>
+            ))}
           </div>
         </div>
       )}
